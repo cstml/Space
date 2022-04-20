@@ -1,0 +1,99 @@
+cabal-version:      2.4
+name:               space-lang
+version:            0.1.0.0
+
+synopsis: A declarative, statically typed, stack programing language.
+
+
+-- A longer description of the package.
+-- description:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+-- license:
+author:             Vlad Posmangiu Luchian
+maintainer:         cstmlcodes@gmail.com
+
+common common-config
+    default-language: Haskell2010
+    build-depends:    base ^>=4.14.3.0
+
+common Extensions
+    other-extensions:
+        GADTs
+
+common Language
+
+common Evaluator
+    other-modules:
+    build-depends:
+        transformers,
+        containers,
+        lens
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files:
+    CHANGELOG.md
+    README.md
+
+library
+    import: Language
+    import: Evaluator
+    import: Extensions
+    exposed-modules:
+        Space
+        Space.Evaluator.Machine
+        Space.Evaluator.Memory
+        Space.Evaluator.Stack
+        Space.Language.Location
+        Space.Language.Term
+        Space.Language.Type
+        Space.Language.Variable
+        Space.Language
+
+
+    -- Modules included in this library but not exported.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    base ^>=4.14.3.0
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+-- executable Space
+--     import:  Language
+--     import:  Extensions
+--     main-is: Main.hs
+
+    -- Modules included in this executable, other than Main.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    -- build-depends:
+    --     base ^>=4.14.3.0,
+    --     space-lang
+
+    -- hs-source-dirs:   app
+    -- default-language: Haskell2010
+
+test-suite tests
+  import: common-config
+  type:           exitcode-stdio-1.0
+  main-is:        Main.hs
+  hs-source-dirs: test
+  other-modules:
+  build-depends:
+    , space-lang
+    , hedgehog
+    , QuickCheck
+    , tasty
+    , tasty-expected-failure
+    , tasty-hedgehog
+    , tasty-hunit
+    , tasty-quickcheck
