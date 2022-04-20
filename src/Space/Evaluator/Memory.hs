@@ -23,7 +23,7 @@ data Memory = Memory
 makeLenses ''Memory
 
 instance Semigroup Memory where
-    m1 <> m2 = Memory 
+    m1 <> m2 = Memory
         { _stacks = m1 ^. stacks <> m2 ^.stacks
         , _binds =  m1 ^. binds <> m2 ^.binds
         }
