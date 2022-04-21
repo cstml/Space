@@ -27,7 +27,7 @@ import qualified Data.Map as Map
 import Data.Sequence
 import Space.Language
 
-newtype Stack = Stack {_stack :: Seq Term}
+newtype Stack a = Stack {_stack :: [a] }
   deriving newtype (Eq, Show, Semigroup, Monoid)
 
 makeLenses ''Stack

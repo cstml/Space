@@ -11,10 +11,11 @@ import qualified Data.Map as Map
 import Data.Sequence
 import Space.Evaluator.Stack
 import Space.Language
+import Space.Language.Empty
 
 data Memory = Memory
-  { _stacks :: Map Location Stack
-  , _binds :: Map Variable Term
+  { _stacks :: Map Location (Stack ())
+  , _binds :: Map Variable (Term Void)
   }
   deriving (Eq, Show)
 

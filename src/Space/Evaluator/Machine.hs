@@ -32,13 +32,11 @@ newtype Environment = Environment ()
 
 type SMachine a = ReaderT Environment (State Memory) a
 
-class Weird (c :: Type -> Constraint)
-
-instance Weird Eq
-
-class
-  (MonadFail mac) =>
-  Machine (mac :: Type -> Type) (mem :: Type) (var :: Type) (location :: Type)
+class EvaluationMachine
+  (mac :: Type -> Type)
+  (mem :: Type)
+  (var :: Type)
+  (location :: Type)
     | mac -> mem
     , mac -> var
     , mac -> location
