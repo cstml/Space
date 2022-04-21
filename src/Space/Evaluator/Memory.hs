@@ -14,7 +14,7 @@ import Space.Language
 import Space.Language.Empty
 
 data Memory = Memory
-  { _stacks :: Map Location (Stack ())
+  { _stacks :: Map Lo (Stack ())
   , _binds :: Map Variable (Term Void)
   }
   deriving (Eq, Show)

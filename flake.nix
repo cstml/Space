@@ -17,6 +17,9 @@
         additionalPckgs = with pkgs; [ nixfmt ];
 
         additionalHaskellPckgs = with pkgs.haskellPackages; [
+          structured-haskell-mode
+          stylish-haskell
+
           apply-refact
           cabal-fmt
           cabal-install

@@ -8,6 +8,7 @@ data Vector a b where
   PureV :: a -> Vector a Void
   EmptyVector :: Vector Void Void
 
+
 instance (Show a, Show b) => Show (Vector a b) where
   show = \case
     a :+: b  -> show a <> " :+: " <> show b

@@ -10,6 +10,21 @@ data Lo where
   Out :: Lo
   C :: Symbol -> Lo
 
+instance Eq Lo where
+  (==) = \case
+    In -> \case In -> True
+                _ -> False
+    Out -> \case Out -> True
+                 _ -> False
+    C s -> \case C s' -> True
+                 _ -> False
+
+instance Show Lo where
+  show = \case
+    In -> "In"
+    Out -> "Out"
+    C s -> "C "
+    
 {- This is an attempt at making Location a Tagless Initial as well. It might backfire badly. -}
 data Location (a :: Lo) b where
   LIn :: b -> Location In b
@@ -21,6 +36,12 @@ instance Show b => Show (Location a b) where
     LIn t -> bracket "LIn " <> show t
     LOut t -> bracket "LOut " <> show t
     LC t -> bracket "LC " <> show t
+
+instance (Eq b) => Eq (Location a b) where
+  (==) = \case
+    LIn b -> \case
+      LIn b' -> b == b'
+    _ -> const False
 
 {-
 instance PShow b => PShow (Location a b) where

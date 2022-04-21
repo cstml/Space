@@ -25,26 +25,13 @@ data Term =
 -}
 
 data Term a where
-  SVar ::
-    Variable ->
-    Term a ->
-    Term (Vector Variable a)
-  SInt ::
-    Int ->
-    Term a ->
-    Term (Vector Int a)
-  SChar ::
-    Char ->
-    Term a ->
-    Term (Vector Char a)
-  SPush ::
-    Location l (Term a) ->
-    Term b ->
-    Term (Vector (Location l (Term a)) b)
-  SPop ::
-    (Show a, PShow c, Show c) =>
-    Term (Vector (Location (l :: Lo) a) c) ->
-    Term (Vector Variable Void) ->
+  SVar  ::   Variable -> Term a -> Term (Vector Variable a)
+  SInt  ::  Int -> Term a -> Term (Vector Int a)
+  SChar :: Char ->    Term a ->    Term (Vector Char a)
+  SPush :: Location l (Term a) -> Term b ->  Term (Vector (Location l (Term a)) b)
+  SPop  ::  (Show a, PShow c, Show c ) =>
+    Term (Vector (Location l (Term a)) c) ->
+    Location l (Term (Vector Variable Void)) ->
     Term d ->
     Term (Vector c d)
   SEmpty ::
@@ -61,6 +48,28 @@ instance Show (Term a) where
           SPush loc con -> bracket $ "SPush " <> bracket (show loc) <> show con
           SPop var loc con -> bracket $ "SPop " <> show var <> show loc <> show con
           SEmpty -> "SEmpty"
+{-
+instance Eq (Term a) where
+  (==) = \case 
+    SVar var con -> \case
+      SVar var' con' -> var == var' && con == con'
+      _ -> False
+    SInt int con -> \case
+      SInt int' con' -> int == int' && con == con'
+      _ -> False
+    SChar ch con -> \case
+      SChar ch' con' -> (ch,con) == (ch',con')
+      _ -> False 
+    SPush loc con -> \case
+      SPush loc' con' -> (loc,con) == (loc',con')
+      _ -> False 
+    SPop t loc con -> \case
+      SPop t' loc' con' -> (t,loc,con) == (t',loc',con')
+      _ -> False 
+    SEmpty -> \case
+      SEmpty -> True
+      _ -> False
+-}
 
 {-
 instance PShow (Term a) where
@@ -89,15 +98,10 @@ ex2 = SChar 'x' $ SChar 'y' SEmpty
     Location l (Term a) -> Term b -> Term (Vector (Location l (Term a)) b)
 -}
 
-ex39 :: Term (Vector Variable Void)
-ex39 = SVar (Variable "x") SEmpty
+ex39 = LC (SVar (Variable "x") SEmpty)
 
-type I_1 = Term (Vector Int Void)
-
-ex30 :: I_1
 ex30 = SInt 1 SEmpty
 
 ex31 = SPush (LC (SInt 1 SEmpty)) SEmpty
 
-ex32 :: Term (Vector Void Void)
 ex32 = SPop ex31 ex39 SEmpty
