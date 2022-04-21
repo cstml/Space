@@ -1,8 +1,8 @@
 cabal-version:      2.4
 name:               space-lang
 version:            0.1.0.0
+synopsis:           A declarative, statically typed, stack programing language.
 
-synopsis: A declarative, statically typed, stack programing language.
 -- A longer description of the package.
 -- description:
 
@@ -11,89 +11,80 @@ synopsis: A declarative, statically typed, stack programing language.
 -- license:
 
 -- A copyright notice.
-copyright: All rights reserved to Vlad Posmangiu Luchian 2020.
-category: languages
-
+copyright:          All rights reserved to Vlad Posmangiu Luchian 2020.
+category:           languages
 author:             Vlad Posmangiu Luchian
 maintainer:         cstmlcodes@gmail.com
 
 common common-config
-    default-language: Haskell2010
-    build-depends:    base
+  default-language: Haskell2010
+  build-depends:    base
 
 common Extensions
-    other-extensions:
-        GADTs
+  other-extensions: GADTs
 
 common Language
 
 common Evaluator
-    other-modules:
-    build-depends:
-        transformers,
-        containers,
-        lens,
-        mtl,
+  other-modules:
+  build-depends:
+    , containers
+    , lens
+    , mtl
+    , transformers
 
 extra-source-files:
-    CHANGELOG.md
-    README.md
+  CHANGELOG.md
+  README.md
 
 library
-    import: Language
-    import: Evaluator
-    import: Extensions
-    exposed-modules:
-        Space
-        Space.Evaluator.Machine
-        Space.Evaluator.Memory
-        Space.Evaluator.Stack
-        Space.Language.Location
-        Space.Language.Term
-        Space.Language.Type
-        Space.Language.Variable
-        Space.Language
+  import:           Language
+  import:           Evaluator
+  import:           Extensions
+  exposed-modules:
+    Space
+    Space.Evaluator.Machine
+    Space.Evaluator.Memory
+    Space.Evaluator.Stack
+    Space.Language
+    Space.Language.Location
+    Space.Language.Term
+    Space.Language.Type
+    Space.Language.Variable
 
-    other-modules:
-        Space.Aux.PShow
-
-    extensions:
-        KindSignatures
-        GADTs
-        LambdaCase
-        DataKinds
-
-    build-depends:    base
-    hs-source-dirs:   src
-    default-language: Haskell2010
+  other-modules:    Space.Aux.PShow
+  extensions:       KindSignatures GADTs LambdaCase DataKinds
+  build-depends:    base
+  hs-source-dirs:   src
+  default-language: Haskell2010
 
 -- executable Space
 --     import:  Language
 --     import:  Extensions
 --     main-is: Main.hs
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+-- Modules included in this executable, other than Main.
+-- other-modules:
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    -- build-depends:
-    --     base ^>=4.14.3.0,
-    --     space-lang
+-- LANGUAGE extensions used by modules in this package.
+-- other-extensions:
+-- build-depends:
+--     base ^>=4.14.3.0,
+--     space-lang
 
-    -- hs-source-dirs:   app
-    -- default-language: Haskell2010
+-- hs-source-dirs:   app
+-- default-language: Haskell2010
 
 test-suite tests
-  import: common-config
+  import:         common-config
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
   hs-source-dirs: test
   other-modules:
   build-depends:
-    , space-lang
     , hedgehog
     , QuickCheck
+    , space-lang
     , tasty
     , tasty-expected-failure
     , tasty-hedgehog
