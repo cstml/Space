@@ -1,8 +1,9 @@
 module Space.Language.Type where
 
-import Data.Void
 import Space.Aux.PShow
+import Space.Language.Empty
 import Space.Language.Location
+import Space.Language.Vector
 
 newtype TVariableAtom = TVariableAtom String
   deriving (Eq, Show)
@@ -32,15 +33,10 @@ data SType =
     deriving (Eq,Show)
 -}
 
-data Vector a b where
-  (:+:) :: a -> b -> Vector a b
-  LiftV :: a -> Vector a Void
-  EmptyV :: Vector Void Void
-
 data SType a where
   TVariable :: TVariableAtom -> SType a -> SType TVariableAtom
   TConstant :: TConstantAtom -> SType a -> SType TConstantAtom
-  TLocation :: Location -> SType b -> SType Location
+  --  TLocation :: Location -> SType b -> SType Location -- Removed because now we can express it directly through the type?
   (:=>) :: SType a -> SType b -> SType (a -> b)
   TEmpty :: SType Void
 
@@ -51,7 +47,7 @@ instance Show (SType a) where
      in \case
           TVariable vAtom con -> bracket $ "TVariable " <> show vAtom <> show con
           TConstant cAtom con -> bracket $ "TConstant " <> show cAtom <> show con
-          TLocation loc con -> bracket $ show loc <> show con
+          --          TLocation loc con -> bracket $ show loc <> show con
           (:=>) t1 t2 -> bracket $ show t1 <> " :=> " <> show t2
           TEmpty -> "TEmpty"
 
@@ -64,6 +60,6 @@ instance PShow (SType a) where
      in \case
           TVariable vAtom con -> pShow vAtom <> show con
           TConstant cAtom con -> show cAtom <> show con
-          TLocation loc con -> show loc <> show con
+          --          TLocation loc con -> show loc <> show con
           (:=>) t1 t2 -> arrow (pShow t1) (pShow t2)
           TEmpty -> "∅"

@@ -51,9 +51,10 @@ library
     Space.Language.Term
     Space.Language.Type
     Space.Language.Variable
+    Space.Language.Vector
 
   other-modules:    Space.Aux.PShow
-  extensions:       KindSignatures GADTs LambdaCase DataKinds
+  extensions:       KindSignatures GADTs LambdaCase DataKinds RankNTypes
   build-depends:    base
   hs-source-dirs:   src
   default-language: Haskell2010
