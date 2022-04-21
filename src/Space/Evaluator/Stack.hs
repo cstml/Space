@@ -6,15 +6,9 @@
 -- {-# LANGUAGE InstanceSigs #-}
 -- {-# Language TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures #-}
 -- {-# Language PolyKinds #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Space.Evaluator.Stack where
 
@@ -27,7 +21,14 @@ import qualified Data.Map as Map
 import Data.Sequence
 import Space.Language
 
-newtype Stack a = Stack {_stack :: [a] }
+{-
+
+Due to encoding the Terms as continuations this term now becomes obsolete.
+
+newtype Stack = Stack {_stack :: Seq Term }
   deriving newtype (Eq, Show, Semigroup, Monoid)
 
 makeLenses ''Stack
+-}
+
+type Stack a = Term a

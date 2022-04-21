@@ -1,12 +1,11 @@
-{-# LANGUAGE GADTs #-}
-
 module Space.Language.Term where
 
-import Data.Void
 import Space.Aux.PShow
+import Space.Language.Empty (Void)
 import Space.Language.Location
 import Space.Language.Type
 import Space.Language.Variable
+import Space.Language.Vector
 
 {- This sort of AST is the tag specifc one used in my previous project. Will
  attempt at a tagless initial together with a tagless final implementation.
@@ -26,13 +25,30 @@ data Term =
 -}
 
 data Term a where
-  SVar :: Variable -> Term a -> Term Variable
-  SInt :: Int -> Term a -> Term Int
-  SChar :: Char -> Term a -> Term Char
-  SPush :: Term a -> Location -> Term c -> Term b
-  SPop :: Term Variable -> Location -> Term a -> Term b
-  SPopTyped :: Term Variable -> Location -> SType t -> Term a -> Term b
-  SEmpty :: Term Void
+  SVar ::
+    Variable ->
+    Term a ->
+    Term (Vector Variable a)
+  SInt ::
+    Int ->
+    Term a ->
+    Term (Vector Int a)
+  SChar ::
+    Char ->
+    Term a ->
+    Term (Vector Char a)
+  SPush ::
+    Location l (Term a) ->
+    Term b ->
+    Term (Vector (Location l (Term a)) b)
+  SPop ::
+    (Show a, PShow c, Show c) =>
+    Term (Vector (Location (l :: Lo) a) c) ->
+    Term (Vector Variable Void) ->
+    Term d ->
+    Term (Vector c d)
+  SEmpty ::
+    Term Void
 
 instance Show (Term a) where
   show =
@@ -42,10 +58,11 @@ instance Show (Term a) where
           SVar var con -> bracket $ "SVar " <> show var <> sep <> show con
           SInt int con -> bracket $ "SInt " <> show int <> sep <> show con
           SChar ch con -> bracket $ "SChar " <> show ch <> sep <> show con
-          SPush pusht loc con -> bracket $ "SPush " <> bracket (show pusht) <> show loc <> show con
+          SPush loc con -> bracket $ "SPush " <> bracket (show loc) <> show con
           SPop var loc con -> bracket $ "SPop " <> show var <> show loc <> show con
           SEmpty -> "SEmpty"
 
+{-
 instance PShow (Term a) where
   pShow =
     let sep = " "
@@ -57,5 +74,30 @@ instance PShow (Term a) where
           SInt int con -> show int <> sep <> pShow con
           SChar ch con -> show ch <> sep <> pShow con
           SPop var loc con -> ang (pShow var) <> pShow loc <> pShow con
-          SPush pusht loc con -> squ (pShow pusht) <> pShow loc <> pShow con
+          SPush loc con -> pShow loc <> pShow con
           SEmpty -> "*"
+-}
+ex1 :: Term (Vector Char Void)
+ex1 = SChar 'x' SEmpty
+
+ex2 :: Term (Vector Char (Vector Char Void))
+ex2 = SChar 'x' $ SChar 'y' SEmpty
+
+{-
+  SPush ::
+    (Show b) =>
+    Location l (Term a) -> Term b -> Term (Vector (Location l (Term a)) b)
+-}
+
+ex39 :: Term (Vector Variable Void)
+ex39 = SVar (Variable "x") SEmpty
+
+type I_1 = Term (Vector Int Void)
+
+ex30 :: I_1
+ex30 = SInt 1 SEmpty
+
+ex31 = SPush (LC (SInt 1 SEmpty)) SEmpty
+
+ex32 :: Term (Vector Void Void)
+ex32 = SPop ex31 ex39 SEmpty
