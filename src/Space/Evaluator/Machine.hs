@@ -3,12 +3,9 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
--- {-# LANGUAGE InstanceSigs #-}
--- {-# Language TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE KindSignatures #-}
--- {-# Language PolyKinds #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -17,26 +14,33 @@ module Space.Evaluator.Machine where
 import Control.Lens hiding (Empty, (:<), (<|))
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 import Data.Kind
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Data.Sequence
+
+import Space.Evaluator.Exception
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
 import System.IO.Error.Lens (location)
 
+type MachineStack = Stack Term
+type MachineMemory = Memory Location Variable Term
+
 newtype Environment = Environment ()
 
-type SMachine a = ReaderT Environment (State Memory) a
+type SMachine a = ReaderT Environment ({-ExceptT MException-} (State MachineMemory)) a
 
-class EvaluationMachine
-  (mac :: Type -> Type)
-  (mem :: Type)
-  (var :: Type)
-  (location :: Type)
+class
+  EvaluationMachine
+    (mac :: Type -> Type)
+    (mem :: Type)
+    (var :: Type)
+    (location :: Type)
     | mac -> mem
     , mac -> var
     , mac -> location
@@ -44,27 +48,23 @@ class EvaluationMachine
   getMemory :: mac mem
   putMemory :: mem -> mac ()
   updateMemory :: (mem -> mem) -> mac ()
-  putStack :: location -> Stack -> mac ()
+  putStack :: location -> MachineStack -> mac ()
   pop1 :: location -> mac Term
   pop1Bind :: var -> location -> mac Term
   bind1 :: var -> Term -> mac ()
   push1 :: location -> Term -> mac ()
   run :: mac () -> mem
 
-instance Machine (ReaderT Environment (State Memory)) Memory Variable Location where
+instance EvaluationMachine (ReaderT Environment (ExceptT MException (State MachineMemory))) MachineMemory Variable Location where
   getMemory = get
-
   putMemory = put
-
   updateMemory f = getMemory >>= putMemory . f
-
-  -- putStack :: Location -> Stack -> SMachine ()
   putStack l s = getMemory >>= putMemory . (stacks . ix l .~ s)
 
   -- push1 :: Location -> Term -> SMachine ()
   push1 l t = do
     mem <- getMemory
-    let a :: Maybe Stack = mem ^. stacks . at l
+    let a :: Maybe MachineStack = mem ^. stacks . at l
     let b = case a of
           Just (Stack s) -> review stack $ t <| s
           Nothing -> review stack $ singleton t
@@ -80,7 +80,7 @@ instance Machine (ReaderT Environment (State Memory)) Memory Variable Location w
       x :< xs -> putStack l (review stack xs) >> pure x
       EmptyL -> pure SEmpty
 
-  run = flip execState mempty . flip runReaderT (Environment ())
+  run = flip runReaderT  (Environment ()) >>> runExceptT >>>flip execState mempty 
 
   -- bind1 :: Variable -> Term -> SMachine ()
   bind1 v t = do
@@ -93,7 +93,7 @@ instance Machine (ReaderT Environment (State Memory)) Memory Variable Location w
     bind1 v t
     return t
 
-exMem :: Memory
+exMem :: MachineMemory
 exMem = Memory mempty (Map.fromList [(Variable "x", SEmpty)])
 
 type Terms = [Term]
@@ -105,7 +105,9 @@ toNum = \case
 
 fromNum = SInteger
 
-evaluate :: (Machine m mem v Location) => Terms -> m mem
+evaluate ::
+  (EvaluationMachine (ReaderT Environment (ExceptT MException (State MachineMemory))) MachineMemory v Location) =>
+  Terms -> ReaderT Environment (ExceptT MException (State MachineMemory)) MachineMemory
 evaluate = \case
   [] -> getMemory
   (x : xs) -> case x of
@@ -121,7 +123,10 @@ evaluate = \case
             "*" -> op (*)
             "^" -> op (^)
             "/" -> op div
-  _ -> fail "Not Complteted "
+--  _ -> fail "Not Complteted "
 
-evaluate' :: Terms -> Memory
-evaluate' t = flip execState mempty . flip runReaderT (Environment ()) $ evaluate t
+(>>>) = flip (.)
+
+
+evaluate' :: Terms ->  {-Either MException-} MachineMemory
+evaluate' =  run . void . evaluate

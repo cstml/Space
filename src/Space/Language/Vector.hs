@@ -1,4 +1,5 @@
-{-#Language TypeOperators#-}
+{-# LANGUAGE TypeOperators #-}
+
 module Space.Language.Vector where
 
 import Space.Language.Empty (Void)
@@ -8,9 +9,8 @@ data Vector a b where
   PureV :: a -> Vector a Void
   EmptyVector :: Vector Void Void
 
-
 instance (Show a, Show b) => Show (Vector a b) where
   show = \case
-    a :+: b  -> show a <> " :+: " <> show b
-    PureV a  -> "PureV " <> show a 
+    a :+: b -> show a <> " :+: " <> show b
+    PureV a -> "PureV " <> show a
     EmptyVector -> "EmptyVector"

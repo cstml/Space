@@ -12,6 +12,7 @@
 
 module Space.Evaluator.Stack where
 
+import Control.Lens
 import Control.Lens hiding ((:<), (<|))
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
@@ -24,11 +25,10 @@ import Space.Language
 {-
 
 Due to encoding the Terms as continuations this term now becomes obsolete.
-
-newtype Stack = Stack {_stack :: Seq Term }
-  deriving newtype (Eq, Show, Semigroup, Monoid)
-
-makeLenses ''Stack
 -}
 
-type Stack a = Term a
+newtype Stack a = Stack {_stack :: Seq a}
+  deriving (Eq, Show)
+  deriving (Functor, Applicative, Monad) via Seq
+
+makeLenses ''Stack

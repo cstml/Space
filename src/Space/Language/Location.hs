@@ -5,6 +5,10 @@ import GHC.TypeLits
 import Space.Aux.PShow
 import Space.Aux.Show
 
+newtype Location = Location String
+  deriving (Eq, Show, Ord) via String
+
+{-
 data Lo where
   In :: Lo
   Out :: Lo
@@ -24,7 +28,7 @@ instance Show Lo where
     In -> "In"
     Out -> "Out"
     C s -> "C "
-    
+
 {- This is an attempt at making Location a Tagless Initial as well. It might backfire badly. -}
 data Location (a :: Lo) b where
   LIn :: b -> Location In b
@@ -49,4 +53,5 @@ instance PShow b => PShow (Location a b) where
     LIn t -> bracket "LIn " <> show t
     LOut t -> bracket "LOut " <> show t
     LC s t -> ""
+-}
 -}

@@ -1,7 +1,7 @@
 module Space.Language.Variable where
 
+import Control.Monad.Identity
 import Space.Aux.PShow
-import Control.Monad.Identity 
 
 newtype Variable = Variable String
   deriving (Eq, Show, Ord) via String

@@ -13,17 +13,17 @@ import Space.Language.Vector
 More on the two techniques can be found here:
 
 - https://serokell.io/blog/introduction-tagless-final.
-
-data Term =
-    SVariable Variable
-    | SInteger Int
-    | SChar Char
-    | SPush Term Location
-    | SPop Variable Location
-    | SEmpty
-    deriving (Eq,Show)
 -}
+data Term
+  = SVariable Variable
+  | SInteger Int
+  | SChar Char
+  | SPush Term Location
+  | SPop Variable Location
+  | SEmpty
+  deriving (Eq, Show, Ord)
 
+{-
 data Term a where
   SVar  ::   Variable -> Term a -> Term (Vector Variable a)
   SInt  ::  Int -> Term a -> Term (Vector Int a)
@@ -48,9 +48,10 @@ instance Show (Term a) where
           SPush loc con -> bracket $ "SPush " <> bracket (show loc) <> show con
           SPop var loc con -> bracket $ "SPop " <> show var <> show loc <> show con
           SEmpty -> "SEmpty"
+-}
 {-
 instance Eq (Term a) where
-  (==) = \case 
+  (==) = \case
     SVar var con -> \case
       SVar var' con' -> var == var' && con == con'
       _ -> False
@@ -59,13 +60,13 @@ instance Eq (Term a) where
       _ -> False
     SChar ch con -> \case
       SChar ch' con' -> (ch,con) == (ch',con')
-      _ -> False 
+      _ -> False
     SPush loc con -> \case
       SPush loc' con' -> (loc,con) == (loc',con')
-      _ -> False 
+      _ -> False
     SPop t loc con -> \case
       SPop t' loc' con' -> (t,loc,con) == (t',loc',con')
-      _ -> False 
+      _ -> False
     SEmpty -> \case
       SEmpty -> True
       _ -> False
@@ -86,6 +87,7 @@ instance PShow (Term a) where
           SPush loc con -> pShow loc <> pShow con
           SEmpty -> "*"
 -}
+{-
 ex1 :: Term (Vector Char Void)
 ex1 = SChar 'x' SEmpty
 
@@ -105,3 +107,4 @@ ex30 = SInt 1 SEmpty
 ex31 = SPush (LC (SInt 1 SEmpty)) SEmpty
 
 ex32 = SPop ex31 ex39 SEmpty
+-}

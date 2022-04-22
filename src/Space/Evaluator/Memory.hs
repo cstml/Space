@@ -13,20 +13,20 @@ import Space.Evaluator.Stack
 import Space.Language
 import Space.Language.Empty
 
-data Memory = Memory
-  { _stacks :: Map Lo (Stack ())
-  , _binds :: Map Variable (Term Void)
+data Memory location binder term = Memory
+  { _stacks :: Map location (Stack term)
+  , _binds :: Map binder term
   }
   deriving (Eq, Show)
 
 makeLenses ''Memory
 
-instance Semigroup Memory where
+instance (Ord b, Ord l) => Semigroup (Memory l b t) where
   m1 <> m2 =
     Memory
       { _stacks = m1 ^. stacks <> m2 ^. stacks
       , _binds = m1 ^. binds <> m2 ^. binds
       }
 
-instance Monoid Memory where
+instance (Ord b, Ord l) => Monoid (Memory l b t) where
   mempty = Memory mempty mempty

@@ -21,8 +21,23 @@ common common-config
   build-depends:    base
 
 common Extensions
-  other-extensions: GADTs
+  default-extensions:
+    DataKinds
+    DerivingVia
+    DerivingVia
+    GADTs
+    KindSignatures
+    LambdaCase
+    RankNTypes
+    TemplateHaskell
 
+common Dependencies
+  build-depends:
+    , containers
+    , lens
+    , mtl
+    , transformers
+    
 common Language
 
 common Evaluator
@@ -32,6 +47,7 @@ common Evaluator
     , lens
     , mtl
     , transformers
+    , prettyprinter
 
 extra-source-files:
   CHANGELOG.md
@@ -43,6 +59,7 @@ library
   import:           Extensions
   exposed-modules:
     Space
+    Space.Evaluator
     Space.Evaluator.Machine
     Space.Evaluator.Memory
     Space.Evaluator.Stack
@@ -54,7 +71,6 @@ library
     Space.Language.Vector
 
   other-modules:    Space.Aux.PShow
-  default-extensions:       KindSignatures GADTs LambdaCase DataKinds RankNTypes DerivingVia
   build-depends:    base
   hs-source-dirs:   src
   default-language: Haskell2010
@@ -91,3 +107,5 @@ test-suite tests
     , tasty-hedgehog
     , tasty-hunit
     , tasty-quickcheck
+    , lens
+    , containers

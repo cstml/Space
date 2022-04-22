@@ -11,7 +11,7 @@ type Empty = Void
 
 -}
 
-newtype Empty = Empty { getEmpty :: D.Void }
+newtype Empty = Empty {getEmpty :: D.Void}
 
 instance Show Empty where
   show = \case
@@ -22,4 +22,3 @@ instance PShow Empty where
     _ -> "Void"
 
 type Void = Empty
-  
