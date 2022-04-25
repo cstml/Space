@@ -8,15 +8,22 @@ import Test.Tasty.HUnit
 import Control.Lens
 import qualified Data.Sequence as S
 import qualified Data.Map as M
+
 test1 =
   testGroup
     "Evaluator Machin Tests"
-    [ testCase "2+2=4" $
-        2 + 2 @?= 4
-    , testCase "Operations" $
-        assertEqual "Push is Working"
-        (evaluate' [(SInteger 3),(SInteger 3)]) 
-        ( stacks .= M.fromList [("Ho", stack .= S.fromList [SInteger 3,SInteger 3] $ mempty )]
-          . (binds .= M.fromList [] $ mempty)
-        )
+    [ testCase "Operations" $ do
+        let int = (SInteger 3)        
+        assertEqual "Working Push Ints."
+          (evaluate' [int,int]) 
+          ( mempty @MachineMemory
+            & stacks .~ M.fromList [(Location "Ho", mempty & stack .~ S.fromList [int,int])]
+          )
+          
+        let char = (SChar 'a') 
+        assertEqual "Working Push Chars." 
+          (evaluate' [char,char]) 
+          ( mempty @MachineMemory
+            & stacks .~ M.fromList [(Location "Ho", mempty & stack .~ S.fromList [char,char])]
+          )      
     ]

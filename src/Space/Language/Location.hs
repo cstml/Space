@@ -9,7 +9,8 @@ import Space.Language.Variable
 import Prettyprinter
 
 newtype Location = Location String
-  deriving stock (Eq, Ord, Show) 
+  deriving stock (Show)
+  deriving newtype (Eq,Ord)
   deriving (Pretty) via Variable
 
 {-

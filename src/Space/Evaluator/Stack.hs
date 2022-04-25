@@ -28,7 +28,8 @@ Due to encoding the Terms as continuations this term now becomes obsolete.
 -}
 
 newtype Stack a = Stack {_stack :: Seq a}
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
+  deriving newtype ( Semigroup, Monoid)
   deriving (Functor, Applicative, Monad) via Seq
 
 makeLenses ''Stack

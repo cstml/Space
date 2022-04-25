@@ -29,7 +29,6 @@ import Space.Language
 import System.IO.Error.Lens (location)
 
 type MachineStack = Stack Term
-type MachineMemory = Memory Location Variable Term
 
 newtype Environment = Environment ()
 
@@ -92,9 +91,6 @@ instance EvaluationMachine (ReaderT Environment (ExceptT MException (State Machi
     t <- pop1 l
     bind1 v t
     return t
-
-exMem :: MachineMemory
-exMem = Memory mempty (Map.fromList [(Variable "x", SEmpty)])
 
 type Terms = [Term]
 

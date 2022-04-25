@@ -26,11 +26,12 @@ common Extensions
     DerivingVia
     DerivingVia
     GADTs
+    GeneralizedNewtypeDeriving
     KindSignatures
     LambdaCase
     RankNTypes
-    TemplateHaskell
     ScopedTypeVariables
+    TemplateHaskell
     TypeApplications
 
 common Dependencies
@@ -95,6 +96,7 @@ library
 
 test-suite tests
   import:         common-config
+  import: Extensions
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
   hs-source-dirs: test

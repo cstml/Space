@@ -18,8 +18,9 @@ data Memory location binder term = Memory
   , _binds :: Map binder term
   }
   deriving (Eq, Show)
-
 makeLenses ''Memory
+
+type MachineMemory = Memory Location Variable Term
 
 instance (Ord b, Ord l) => Semigroup (Memory l b t) where
   m1 <> m2 =
