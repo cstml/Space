@@ -30,6 +30,8 @@ common Extensions
     LambdaCase
     RankNTypes
     TemplateHaskell
+    ScopedTypeVariables
+    TypeApplications
 
 common Dependencies
   build-depends:
@@ -70,7 +72,6 @@ library
     Space.Language.Variable
     Space.Language.Vector
 
-  other-modules:    Space.Aux.PShow
   build-depends:    base
   hs-source-dirs:   src
   default-language: Haskell2010

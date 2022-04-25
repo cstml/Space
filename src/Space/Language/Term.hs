@@ -1,11 +1,12 @@
 module Space.Language.Term where
 
-import Space.Aux.PShow
 import Space.Language.Empty (Void)
 import Space.Language.Location
 import Space.Language.Type
 import Space.Language.Variable
 import Space.Language.Vector
+
+import Prettyprinter 
 
 {- This sort of AST is the tag specifc one used in my previous project. Will
  attempt at a tagless initial together with a tagless final implementation.
@@ -22,6 +23,10 @@ data Term
   | SPop Variable Location
   | SEmpty
   deriving (Eq, Show, Ord)
+
+instance Pretty Term where
+  pretty = \case
+    SVariable x -> pretty x
 
 {-
 data Term a where

@@ -1,21 +1,24 @@
 module Space.Language.Type where
 
-import Space.Aux.PShow
 import Space.Language.Empty
 import Space.Language.Location
 import Space.Language.Vector
+import Space.Language.Variable
+
+import Prettyprinter
 
 newtype TVariableAtom = TVariableAtom String
-  deriving (Eq, Show)
+  deriving stock (Eq,Show,Ord)
 
-instance PShow TVariableAtom where
-  pShow (TVariableAtom s) = s
+instance Pretty TVariableAtom where
+  pretty (TVariableAtom s) = pretty s
 
 newtype TConstantAtom = TConstantAtom String
-  deriving (Eq, Show)
+  deriving stock (Eq, Show, Ord)
+  deriving Pretty via TVariableAtom
 
-instance PShow TConstantAtom where
-  pShow (TConstantAtom s) = s
+-- instance Pretty TConstantAtom where
+--   pretty (TConstantAtom s) = pretty s
 
 {- Same goes here for tagless initial.
 
@@ -36,30 +39,34 @@ data SType =
 data SType a where
   TVariable :: TVariableAtom -> SType a -> SType TVariableAtom
   TConstant :: TConstantAtom -> SType a -> SType TConstantAtom
-  --  TLocation :: Location -> SType b -> SType Location -- Removed because now we can express it directly through the type?
-  (:=>) :: SType a -> SType b -> SType (a -> b)
+  TLocation :: Location -> SType a -> SType b -> SType Location
+  TArrow :: SType a -> SType b -> SType c -> SType (a -> b)
   TEmpty :: SType Void
 
 instance Show (SType a) where
   show =
     let bracket x = "(" <> x <> ")"
         sep = " "
-     in \case
-          TVariable vAtom con -> bracket $ "TVariable " <> show vAtom <> show con
-          TConstant cAtom con -> bracket $ "TConstant " <> show cAtom <> show con
-          --          TLocation loc con -> bracket $ show loc <> show con
-          (:=>) t1 t2 -> bracket $ show t1 <> " :=> " <> show t2
+        (<++>) x y = x <> sep <> y
+     in \case     
+          TVariable vAtom con -> bracket $ "TVariable " <++> bracket (show vAtom) <++> show con
+          TConstant cAtom con -> bracket $ "TConstant " <++> bracket (show cAtom) <++> show con
+          TLocation loc t con -> bracket $ "TLocation " <++> bracket (show loc)   <++> show t <++> show con
+          TArrow t1 t2 con -> bracket $ "TArrow " <++> bracket (show t1) <++>  bracket (show t2) <++> show con
           TEmpty -> "TEmpty"
 
-instance PShow (SType a) where
-  pShow =
-    let bracket x = "(" <> x <> ")"
-        curly x = "{" <> x <> "}"
-        arrow x y = x <> " -> " <> y
-        sep = " "
-     in \case
-          TVariable vAtom con -> pShow vAtom <> show con
-          TConstant cAtom con -> show cAtom <> show con
-          --          TLocation loc con -> show loc <> show con
-          (:=>) t1 t2 -> arrow (pShow t1) (pShow t2)
-          TEmpty -> "∅"
+instance Pretty (SType a) where
+  pretty = group .  go 
+    where
+      sep        = ","
+      (<++>) x y = x <> pretty sep <+> y 
+      bracket x = pretty "(" <> x <> pretty ")"
+      curly x = "{" <> x <> "}"
+      arrow x y = x <> pretty " -> " <+> y
+      go :: SType a -> Doc ann
+      go = \case 
+          TVariable vAtom con -> pretty vAtom <++> pretty con
+          TConstant cAtom con -> pretty cAtom <++> pretty con
+          TLocation loc t con -> bracket (pretty t) <> pretty "@" <> pretty loc <++> pretty con
+          TArrow t1 t2 con -> (arrow  (pretty t1) (pretty t2)) <++> pretty con
+          TEmpty -> pretty "∅"

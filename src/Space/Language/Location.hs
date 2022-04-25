@@ -2,11 +2,15 @@ module Space.Language.Location where
 
 import Data.Kind
 import GHC.TypeLits
-import Space.Aux.PShow
+
 import Space.Aux.Show
+import Space.Language.Variable
+
+import Prettyprinter
 
 newtype Location = Location String
-  deriving (Eq, Show, Ord) via String
+  deriving stock (Eq, Ord, Show) 
+  deriving (Pretty) via Variable
 
 {-
 data Lo where
