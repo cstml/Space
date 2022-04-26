@@ -1,6 +1,6 @@
 module Space.Language.Empty where
 
-import qualified Data.Void as D
+import Data.Void qualified as D
 import Prettyprinter
 
 {- Empty here is equivalent in the logical sense with the non-inhabited Void. The

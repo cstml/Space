@@ -1,21 +1,20 @@
 module Space.Language.Type where
 
+import Prettyprinter
 import Space.Language.Empty
 import Space.Language.Location
-import Space.Language.Vector
 import Space.Language.Variable
-
-import Prettyprinter
+import Space.Language.Vector
 
 newtype TVariableAtom = TVariableAtom String
-  deriving stock (Eq,Show,Ord)
+  deriving stock (Eq, Show, Ord)
 
 instance Pretty TVariableAtom where
   pretty (TVariableAtom s) = pretty s
 
 newtype TConstantAtom = TConstantAtom String
   deriving stock (Eq, Show, Ord)
-  deriving Pretty via TVariableAtom
+  deriving (Pretty) via TVariableAtom
 
 -- instance Pretty TConstantAtom where
 --   pretty (TConstantAtom s) = pretty s
@@ -48,25 +47,25 @@ instance Show (SType a) where
     let bracket x = "(" <> x <> ")"
         sep = " "
         (<++>) x y = x <> sep <> y
-     in \case     
+     in \case
           TVariable vAtom con -> bracket $ "TVariable " <++> bracket (show vAtom) <++> show con
           TConstant cAtom con -> bracket $ "TConstant " <++> bracket (show cAtom) <++> show con
-          TLocation loc t con -> bracket $ "TLocation " <++> bracket (show loc)   <++> show t <++> show con
-          TArrow t1 t2 con -> bracket $ "TArrow " <++> bracket (show t1) <++>  bracket (show t2) <++> show con
+          TLocation loc t con -> bracket $ "TLocation " <++> bracket (show loc) <++> show t <++> show con
+          TArrow t1 t2 con -> bracket $ "TArrow " <++> bracket (show t1) <++> bracket (show t2) <++> show con
           TEmpty -> "TEmpty"
 
 instance Pretty (SType a) where
-  pretty = group .  go 
-    where
-      sep        = ","
-      (<++>) x y = x <> pretty sep <+> y 
-      bracket x = pretty "(" <> x <> pretty ")"
-      curly x = "{" <> x <> "}"
-      arrow x y = x <> pretty " -> " <+> y
-      go :: SType a -> Doc ann
-      go = \case 
-          TVariable vAtom con -> pretty vAtom <++> pretty con
-          TConstant cAtom con -> pretty cAtom <++> pretty con
-          TLocation loc t con -> bracket (pretty t) <> pretty "@" <> pretty loc <++> pretty con
-          TArrow t1 t2 con -> (arrow  (pretty t1) (pretty t2)) <++> pretty con
-          TEmpty -> pretty "∅"
+  pretty = group . go
+   where
+    sep = ","
+    (<++>) x y = x <> pretty sep <+> y
+    bracket x = pretty "(" <> x <> pretty ")"
+    curly x = "{" <> x <> "}"
+    arrow x y = x <> pretty " -> " <+> y
+    go :: SType a -> Doc ann
+    go = \case
+      TVariable vAtom con -> pretty vAtom <++> pretty con
+      TConstant cAtom con -> pretty cAtom <++> pretty con
+      TLocation loc t con -> bracket (pretty t) <> pretty "@" <> pretty loc <++> pretty con
+      TArrow t1 t2 con -> arrow (pretty t1) (pretty t2) <++> pretty con
+      TEmpty -> pretty "∅"

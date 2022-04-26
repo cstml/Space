@@ -1,5 +1,3 @@
-{-# LANGUAGE TypeOperators #-}
-
 module Space.Language.Vector where
 
 import Space.Language.Empty (Void)

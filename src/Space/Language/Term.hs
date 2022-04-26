@@ -1,12 +1,12 @@
 module Space.Language.Term where
 
+import Data.List
+import Prettyprinter hiding (SChar, SEmpty)
 import Space.Language.Empty (Void)
 import Space.Language.Location
 import Space.Language.Type
 import Space.Language.Variable
 import Space.Language.Vector
-
-import Prettyprinter 
 
 {- This sort of AST is the tag specifc one used in my previous project. Will
  attempt at a tagless initial together with a tagless final implementation.
@@ -16,17 +16,44 @@ More on the two techniques can be found here:
 - https://serokell.io/blog/introduction-tagless-final.
 -}
 data Term
-  = SVariable Variable
-  | SInteger Int
-  | SChar Char
-  | SPush Term Location
-  | SPop Variable Location
+  = SVariable Variable Term
+  | SInteger Int Term
+  | SChar Char Term
+  | SPush Term Location Term
+  | SPop Variable Location Term
   | SEmpty
   deriving (Eq, Show, Ord)
 
 instance Pretty Term where
-  pretty = \case
-    SVariable x -> pretty x
+  pretty =
+    let sep = " "
+        (<++>) x y = x <+> pretty sep <+> y
+     in \case
+          SVariable x con -> pretty x <++> pretty con
+
+instance Semigroup Term where
+  (<>) = \case
+    SVariable v con -> \y -> SVariable v (con <> y)
+    SInteger i con -> \y -> SInteger i (con <> y)
+    SChar c con -> \y -> SChar c (con <> y)
+    SPush tp lo con -> \y -> SPush tp lo (con <> y)
+    SPop var lo con -> \y -> SPop var lo (con <> y)
+    SEmpty -> id
+
+instance Monoid Term where
+  mempty = SEmpty
+
+unfoldTerm :: Term -> [Term]
+unfoldTerm = unfoldr go
+ where
+  go :: Term -> Maybe (Term, Term)
+  go = \case
+    SVariable v con -> Just (SVariable v SEmpty, con)
+    SInteger i con -> Just (SInteger i SEmpty, con)
+    SChar c con -> Just (SChar c SEmpty, con)
+    SPush tp lo con -> Just (SPush tp lo SEmpty, con)
+    SPop var lo con -> Just (SPop var lo SEmpty, con)
+    SEmpty -> Nothing
 
 {-
 data Term a where

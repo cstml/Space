@@ -69,6 +69,7 @@ format:
 		-o -XTemplateHaskell \
 		-o -XPatternSynonyms \
 		-o -XGADTs		 \
+		-o -XImportQualifiedPost\
 	    $(SOURCES)
 	cabal-fmt -i $(CABAL_FILES)
 	nixfmt $(NIX_FILES)
