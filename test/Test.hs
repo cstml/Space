@@ -8,4 +8,3 @@ main :: IO ()
 main = defaultMain allTests
 
 allTests = testGroup "AllTests" [Machine.test1, Parser.unit]
-
