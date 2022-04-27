@@ -118,7 +118,7 @@ instance PShow (Term a) where
           SPop var loc con -> ang (pShow var) <> pShow loc <> pShow con
           SPush loc con -> pShow loc <> pShow con
           SEmpty -> "*"
--}
+4-}
 {-
 ex1 :: Term (Vector Char Void)
 ex1 = SChar 'x' SEmpty

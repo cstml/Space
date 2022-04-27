@@ -53,7 +53,7 @@ class
   pop1Bind :: var -> location -> mac Term
   bind1 :: var -> Term -> mac ()
   push1 :: location -> Term -> mac ()
-  run :: mac () -> mem
+  run :: mac () -> (Either MException (), mem)
 
 instance EvaluationMachine (ReaderT Environment (ExceptT MException (State MachineMemory))) MachineMemory Variable Location where
   getMemory = get
@@ -87,7 +87,7 @@ instance EvaluationMachine (ReaderT Environment (ExceptT MException (State Machi
         putMemory (m & stacks . at l .~ Nothing)
         pure SEmpty
 
-  run = flip runReaderT (Environment ()) >>> runExceptT >>> flip execState mempty
+  run = flip runReaderT (Environment ()) >>> runExceptT >>> flip runState mempty
 
   -- bind1 :: Variable -> Term -> SMachine ()
   bind1 v t = do
@@ -100,10 +100,10 @@ instance EvaluationMachine (ReaderT Environment (ExceptT MException (State Machi
     bind1 v t
     return t
 
-toNum :: Term -> Maybe Int
-toNum = \case
-  SInteger x SEmpty -> pure x
-  _ -> Nothing
+toNum :: Term -> (Term, Maybe Int)
+toNum t = case t of
+  SInteger x SEmpty -> (t, pure x)
+  _ -> (t, Nothing)
 
 fromNum :: Int -> Term
 fromNum = flip SInteger SEmpty
@@ -122,11 +122,12 @@ evaluate = \case
           SPop v l _ -> (bind1 v =<< pop1 l) >> evaluate con
           SVariable (Variable v) _ ->
             let op o = do
-                  a <- toNum <$> pop1 (Location "Ho")
-                  b <- toNum <$> pop1 (Location "Ho")
+                  (ta, a) <- toNum <$> pop1 (Location "Ho")
+                  (tb, b) <- toNum <$> pop1 (Location "Ho")
                   let res = o <$> a <*> b
                   case res of
-                    Nothing -> lift . throwE $ WrongType ""
+                    Nothing ->
+                      lift . throwE $ TypeMissmatch $ "Expected 2 Ints, got: " <> show ta <> " " <> show tb
                     Just res' -> push1 (Location "Ho") (fromNum res') >> evaluate con
              in case v of
                   "+" -> op (+)
@@ -142,5 +143,9 @@ evaluate = \case
 
 (>>>) = flip (.)
 
-evaluate' :: Term -> MachineMemory
-evaluate' = run . void . evaluate
+evaluate' :: Term -> Either MException MachineMemory
+evaluate' = go . run . void . evaluate
+ where
+  go = \case
+    (Left e, _) -> Left e
+    (Right (), mem) -> Right mem
