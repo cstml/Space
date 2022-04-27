@@ -139,8 +139,6 @@ evaluate = \case
                     let t = mem ^. binds . ix (Variable v)
                     evaluate $ t <> con
 
---  _ -> fail "Not Complteted "
-
 (>>>) = flip (.)
 
 evaluate' :: Term -> Either MException MachineMemory

@@ -54,6 +54,10 @@ common Dependencies
     , tasty-hunit
     , tasty-quickcheck
     , transformers
+    , megaparsec
+    , text
+    , ghc-prim
+    , parsers
 
 common Language
   hs-source-dirs:   src
@@ -66,6 +70,9 @@ common Language
     Space.Evaluator.Memory
     Space.Evaluator.Stack
     Space.Language
+    Space.Parser
+    Space.Parser.Token
+    Space.Parser.Term
     Space.Language.Empty
     Space.Language.Location
     Space.Language.Term
@@ -94,6 +101,8 @@ library
     Space.Language.Type
     Space.Language.Variable
     Space.Language.Vector
+    Space.Parser
+    Space.Parser.Term    
 
 executable repl
   import:           Extensions
@@ -117,10 +126,11 @@ test-suite tests
   import:         common-config
   import:         Extensions
   import:         Language
+  import:         Dependencies
   type:           exitcode-stdio-1.0
   main-is:        Test.hs
   hs-source-dirs: test src
-  other-modules:  Test.Space.Evaluator.Machine
+  other-modules:  Test.Space.Evaluator.Machine Test.Space.Parser
   build-depends:
     , containers
     , hedgehog
