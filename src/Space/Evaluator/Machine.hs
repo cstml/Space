@@ -53,7 +53,7 @@ class
   pop1Bind :: var -> location -> mac Term
   bind1 :: var -> Term -> mac ()
   push1 :: location -> Term -> mac ()
-  run :: mac () -> (Either MException (), mem)
+  run :: mem -> mac () -> (Either MException (), mem)
 
 instance EvaluationMachine (ReaderT Environment (ExceptT MException (State MachineMemory))) MachineMemory Variable Location where
   getMemory = get
@@ -87,7 +87,7 @@ instance EvaluationMachine (ReaderT Environment (ExceptT MException (State Machi
         putMemory (m & stacks . at l .~ Nothing)
         pure SEmpty
 
-  run = flip runReaderT (Environment ()) >>> runExceptT >>> flip runState mempty
+  run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runState state
 
   -- bind1 :: Variable -> Term -> SMachine ()
   bind1 v t = do
@@ -120,6 +120,7 @@ evaluate = \case
           SInteger _ _ -> push1 (Location "Ho") x >> evaluate con
           SChar _ _ -> push1 (Location "Ho") x >> evaluate con
           SPop v l _ -> (bind1 v =<< pop1 l) >> evaluate con
+          SPush t l _ -> push1 l t >> evaluate con
           SVariable (Variable v) _ ->
             let op o = do
                   (ta, a) <- toNum <$> pop1 (Location "Ho")
@@ -131,6 +132,7 @@ evaluate = \case
                     Just res' -> push1 (Location "Ho") (fromNum res') >> evaluate con
              in case v of
                   "+" -> op (+)
+                  "-" -> op (-)
                   "*" -> op (*)
                   "^" -> op (^)
                   "/" -> op div
@@ -141,8 +143,16 @@ evaluate = \case
 
 (>>>) = flip (.)
 
+eval :: MachineMemory -> Term -> Either MException MachineMemory
+eval mem = go . run mem . void . evaluate
+  where
+  go = \case
+    (Left e, _) -> Left e
+    (Right (), mem) -> Right mem
+
+
 evaluate' :: Term -> Either MException MachineMemory
-evaluate' = go . run . void . evaluate
+evaluate' = go . run mempty . void . evaluate
  where
   go = \case
     (Left e, _) -> Left e

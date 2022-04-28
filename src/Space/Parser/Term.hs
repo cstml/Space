@@ -18,15 +18,18 @@ pTerm :: Parser Term
 pTerm =
   lex_ . P.choice $
     P.try
-      <$> [ pEmptyTerm
-          , pVariable
-          , pChar
+      <$> [ pChar
           , pInteger
+          , pVariable
           , pPushHo
           , pPush
           , pPopHo
           , pPop
+          , pEmptyTerm
           ]
+
+-- | 
+pTerm' = pTerm <|> pure SEmpty
 
 pLocation :: Parser Location
 pLocation = lex_ $ do
@@ -36,54 +39,54 @@ pLocation = lex_ $ do
   pure . Location $ [a, b]
 
 pEmptyTerm :: Parser Term
-pEmptyTerm = P.char '*' >> return SEmpty
+pEmptyTerm =  P.char '*' >> return SEmpty
 
 pVar :: Parser Variable
 pVar = Variable . pure <$> lex_ P.lowerChar
 
 pVariable :: Parser Term
 pVariable = do
-  (SVariable . Variable . pure -> v) <- lex_ P.lowerChar
+  (SVariable . Variable . pure -> v) <- lex_ P.printChar
   pSeparator
-  v <$> pTerm
+  v <$> pTerm'
 
 pChar :: Parser Term
 pChar = do
   (SChar -> c) <- lex_ $ P.char '\'' >> P.letterChar <* P.char '\''
   pSeparator
-  c <$> pTerm
+  c <$> pTerm'
 
 pInteger :: Parser Term
 pInteger = do
   (SInteger -> i) <- lex_ P.decimal
   pSeparator
-  i <$> pTerm
+  i <$> pTerm'
 
 pPushHo :: Parser Term
 pPushHo = do
   (\x -> SPush x (Location "Ho") -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
   pSeparator
-  p <$> pTerm
+  p <$> pTerm'
 
 pPush :: Parser Term
 pPush = do
   l <- pLocation
   ((`SPush` l) -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
   pSeparator
-  p <$> pTerm
+  p <$> pTerm'
 
 pPopHo :: Parser Term
 pPopHo = do
   (\x -> SPop x (Location "Ho") -> p) <- P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
   pSeparator
-  p <$> pTerm
+  p <$> pTerm'
 
 pPop :: Parser Term
 pPop = do
   l <- pLocation
   ((`SPop` l) -> p) <- P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
   pSeparator
-  p <$> pTerm
+  p <$> pTerm'
 
 pSeparator :: Parser ()
-pSeparator = lex_ . void $ P.char ';'
+pSeparator = lex_ . void $ P.choice $ P.try <$> [P.char ';', P.char ' ']

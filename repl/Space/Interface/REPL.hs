@@ -3,12 +3,16 @@ module Space.Interface.REPL where
 import Control.Lens
 import Space
 
-replRead = readLn @String
+replRead = getLine
 
-replEval :: String -> IO (String, SMachine)
-replEval s = do
-  let pr = parseTerm s
-  case pr of
-    Left e -> error . show $ e
-    Right t -> evaluate t
-  
+replEval :: String -> MachineMemory -> (String, MachineMemory)
+replEval s mem =
+  let
+    pr = parseTerm s
+  in
+    case pr of
+      Left e -> (show $ e, mem)
+      Right term -> case eval mem term of
+        Left e -> (show e, mem)
+        Right mem' -> (show mem', mem')
+      
