@@ -14,7 +14,7 @@
           config.allowBroken = true;
         };
 
-        additionalPckgs = with pkgs; [ nixfmt ];
+        additionalPckgs = with pkgs; [ nixfmt rlwrap ];
 
         additionalHaskellPckgs = with pkgs.haskellPackages; [
           structured-haskell-mode

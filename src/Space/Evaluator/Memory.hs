@@ -43,7 +43,7 @@ instance (Show l, Show b, Show t, Pretty l, Pretty b, Pretty t ) => Pretty (Memo
                 , indent 4 $ (pretty (mem ^. stacks))
                 ]
          , vsep [ pretty "Binds:"
-                , indent 4 $ (unsafeViaShow (mem ^. stacks))
+                , indent 4 $ (pretty (mem ^. binds))
                 ]
          , emptyDoc
          ]
