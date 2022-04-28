@@ -6,26 +6,38 @@ import Data.Sequence qualified as S
 import Space
 import Test.Tasty
 import Test.Tasty.HUnit
+import Data.String
+import Data.Text qualified as T
+import Space.Language qualified as L
+import Space.Parser.Term as X
+import Space.Parser.Token as X
+import Text.Megaparsec qualified as P
+import Text.Megaparsec.Char qualified as P
+import Text.Megaparsec.Char.Lexer qualified as P
+
 
 ok :: forall a b. a -> Either b a
 ok = pure
 
+tParseTerm :: String -> Maybe L.Term
+tParseTerm = P.parseMaybe pTerm . fromString
+
 unit =
   let stdTest r1 t1 r2 t2 = do
         let str = r1 <> ";*"
-        assertEqual str (Just $ t1 SEmpty) (parseTerm str)
+        assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
 
         let str = r1 <> "    ;    *"
-        assertEqual str (Just $ t1 SEmpty) (parseTerm str)
+        assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
 
         let str = r1 <> " ; " <> r2 <> " ; *"
-        assertEqual str (Just $ t1 $ t2 SEmpty) (parseTerm str)
+        assertEqual str (Just $ t1 $ t2 SEmpty) (tParseTerm str)
 
         let str = r1 <> " {-; " <> r2 <> " -}; *"
-        assertEqual str (Just $ t1 SEmpty) (parseTerm str)
+        assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
    in testGroup
         "Parser Unit Tests"
-        [ testCase "Parse empty Term" $ assertEqual "*" (Just SEmpty) (parseTerm "*")
+        [ testCase "Parse empty Term" $ assertEqual "*" (Just SEmpty) (tParseTerm "*")
         , testCase "Parse Variable." $ stdTest "x" (SVariable (Variable "x")) "y" (SVariable (Variable "y"))
         , testCase "Parse Char." $ stdTest "'x'" (SChar 'x') "'y'" (SChar 'y')
         , testCase "Parse Int." $ stdTest "1" (SInteger 1) "20" (SInteger 20)

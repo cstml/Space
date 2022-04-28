@@ -15,8 +15,5 @@ import Text.Megaparsec qualified as P
 import Text.Megaparsec.Char qualified as P
 import Text.Megaparsec.Char.Lexer qualified as P
 
-testParseTerm :: String -> Maybe L.Term
-testParseTerm = P.parseMaybe pTerm . fromString
-
 parseTerm :: String -> Either (P.ParseErrorBundle T.Text Void) L.Term
 parseTerm = P.parse pTerm "Standard Input" . T.pack

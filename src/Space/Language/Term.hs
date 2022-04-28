@@ -26,10 +26,15 @@ data Term
 
 instance Pretty Term where
   pretty =
-    let sep = " "
-        (<++>) x y = x <+> pretty sep <+> y
+    let sep = ";"
+        (<++>) x y = x <> pretty sep <> y
      in \case
-          SVariable x con -> pretty x <++> pretty con
+          SVariable x con -> pretty x <++> pretty con          
+          SInteger i con -> pretty i <++> pretty con
+          SChar c con -> pretty c <++> pretty con
+          SPush t l con -> brackets (pretty t) <++> pretty l <++> pretty con
+          SPop v l con -> pretty v <++> pretty l <++> pretty con
+          SEmpty -> pretty "*"
 
 instance Semigroup Term where
   (<>) = \case
