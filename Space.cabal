@@ -19,7 +19,7 @@ extra-source-files:
   CHANGELOG.md
   README.md
 
-common common-config
+common Config
   default-language: Haskell2010
   build-depends:    base
 
@@ -84,6 +84,7 @@ common Language
 
 library
   import:          Extensions
+  import:          Config
   import:          Dependencies
   hs-source-dirs:  src
   exposed-modules:
@@ -104,29 +105,36 @@ library
     Space.Parser
     Space.Parser.Term
 
-executable repl
+executable tui-interface
   import:           Extensions
   import:           Dependencies
   import:           Language
+  import:           Config
   main-is:          REPL.hs
   hs-source-dirs:   app
+  hs-source-dirs:   src
   other-modules:    Space.Interface.REPL
   build-depends:
     , base
     , brick
-    , space-lang
     , vty
-
-  default-language: Haskell2010
   ghc-options:      -threaded -rtsopts
 
---  ghc-options:      -Wall -threaded -rtsopts
-
+executable repl
+  import:           Extensions
+  import:           Dependencies
+  import:           Language
+  import:           Config
+  main-is:          REPL.hs
+  hs-source-dirs:   repl
+  hs-source-dirs:   src
+  other-modules:    Space.Interface.REPL
+  
 test-suite tests
-  import:         common-config
   import:         Extensions
   import:         Language
   import:         Dependencies
+  import:         Config
   type:           exitcode-stdio-1.0
   main-is:        Test.hs
   hs-source-dirs: test src

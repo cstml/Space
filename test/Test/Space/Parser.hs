@@ -12,7 +12,6 @@ ok = pure
 
 unit =
   let stdTest r1 t1 r2 t2 = do
-
         let str = r1 <> ";*"
         assertEqual str (Just $ t1 SEmpty) (parseTerm str)
 
@@ -24,7 +23,6 @@ unit =
 
         let str = r1 <> " {-; " <> r2 <> " -}; *"
         assertEqual str (Just $ t1 SEmpty) (parseTerm str)
-        
    in testGroup
         "Parser Unit Tests"
         [ testCase "Parse empty Term" $ assertEqual "*" (Just SEmpty) (parseTerm "*")

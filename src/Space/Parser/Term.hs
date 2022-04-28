@@ -14,13 +14,6 @@ import Text.Megaparsec qualified as P
 import Text.Megaparsec.Char qualified as P
 import Text.Megaparsec.Char.Lexer qualified as P
 
-pLocation :: Parser Location
-pLocation = lex_ $ do
-  _ <- P.char '@'
-  a <- P.upperChar
-  b <- P.alphaNumChar
-  pure . Location $ [a, b]
-
 pTerm :: Parser Term
 pTerm =
   lex_ . P.choice $
@@ -34,6 +27,13 @@ pTerm =
           , pPopHo
           , pPop
           ]
+
+pLocation :: Parser Location
+pLocation = lex_ $ do
+  _ <- P.char '@'
+  a <- P.upperChar
+  b <- P.alphaNumChar
+  pure . Location $ [a, b]
 
 pEmptyTerm :: Parser Term
 pEmptyTerm = P.char '*' >> return SEmpty

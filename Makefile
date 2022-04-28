@@ -18,6 +18,9 @@ tags:
 run: build
 	cabal new run FMCt-web
 
+build-repl:
+	cabal new-build repl 
+
 # Starts a repl
 repl:
 	cabal new-repl
@@ -27,6 +30,9 @@ test:
 
 lint:
 	hlint .
+
+watch-build-repl:
+	git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.hs' | entr make build-repl
 
 # Start a lint watcher
 watch-lint:

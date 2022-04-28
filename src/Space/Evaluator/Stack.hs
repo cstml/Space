@@ -1,5 +1,3 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-
 module Space.Evaluator.Stack where
 
 import Control.Lens
