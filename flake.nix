@@ -28,6 +28,7 @@
           hasktags
           hlint
           zlib
+          haskell-language-server
         ];
 
         project = returnShellEnv:
