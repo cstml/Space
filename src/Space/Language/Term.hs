@@ -8,19 +8,20 @@ import Space.Language.Type
 import Space.Language.Variable
 import Space.Language.Vector
 
-{- This sort of AST is the tag specifc one used in my previous project. Will
- attempt at a tagless initial together with a tagless final implementation.
+{-
 
-More on the two techniques can be found here:
+In the end forflexibility reasons chose to go down the path of continuantio
+style terms.
 
-- https://serokell.io/blog/introduction-tagless-final.
 -}
+
 data Term
   = SVariable Variable Term
   | SInteger Int Term
   | SChar Char Term
   | SPush Term Location Term
   | SPop Variable Location Term
+  | SPopT Variable Location SType Term
   | SEmpty
   deriving (Eq, Show, Ord)
 
@@ -33,7 +34,8 @@ instance Pretty Term where
           SInteger i con -> pretty i <++> pretty con
           SChar c con -> pretty c <++> pretty con
           SPush t l con -> brackets (pretty t) <++> pretty l <++> pretty con
-          SPop v l con -> pretty v <++> pretty l <++> pretty con
+          SPop v l con -> angles (pretty v) <++> pretty l <++> pretty con
+          SPopT v l ty con -> angles (pretty v <+> colon <+> pretty ty) <++> pretty l <++> pretty con
           SEmpty -> pretty "*"
 
 instance Semigroup Term where

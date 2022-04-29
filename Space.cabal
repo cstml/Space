@@ -26,7 +26,7 @@ common Config
 common Extensions
   default-extensions:
     DataKinds
-    DerivingVia
+    DeriveGeneric
     DerivingVia
     GADTs
     GeneralizedNewtypeDeriving
@@ -82,6 +82,13 @@ common Language
 
   other-extensions: OverloadedStrings
 
+common Test
+  hs-source-dirs: test
+  other-modules:
+    Test.Space.Evaluator.Machine
+    Test.Space.Language
+    Test.Space.Parser
+
 library
   import:          Extensions
   import:          Config
@@ -135,18 +142,14 @@ executable repl
   other-modules: Space.Interface.REPL
 
 test-suite tests
-  import:         Repl
-  import:         Extensions
-  import:         Language
-  import:         Dependencies
-  import:         Config
-  type:           exitcode-stdio-1.0
-  main-is:        Test.hs
-  hs-source-dirs: test
-  other-modules:
-    Test.Space.Evaluator.Machine
-    Test.Space.Parser
-
+  import:        Repl
+  import:        Extensions
+  import:        Language
+  import:        Dependencies
+  import:        Test
+  import:        Config
+  type:          exitcode-stdio-1.0
+  main-is:       Test.hs
   build-depends:
     , containers
     , hedgehog

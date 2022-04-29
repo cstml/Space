@@ -1,5 +1,6 @@
 module Space.Language.Type where
 
+import GHC.Generics
 import Prettyprinter
 import Space.Language.Empty
 import Space.Language.Location
@@ -12,29 +13,38 @@ newtype TVariableAtom = TVariableAtom String
 instance Pretty TVariableAtom where
   pretty (TVariableAtom s) = pretty s
 
-newtype TConstantAtom = TConstantAtom String
+data TConstantAtom = TChar | TInt
   deriving stock (Eq, Show, Ord)
-  deriving (Pretty) via TVariableAtom
+  deriving (Generic)
 
--- instance Pretty TConstantAtom where
---   pretty (TConstantAtom s) = pretty s
+instance Pretty TConstantAtom where
+  pretty = pretty . show
 
-{- Same goes here for tagless initial.
+data SType
+  = TVariable TVariableAtom SType
+  | TConstant TConstantAtom SType
+  | TLocation Location SType SType
+  | TArrow SType SType SType
+  | TEmpty
+  deriving (Eq, Show, Ord)
 
-See note in Term about tagless implementation.
--}
-
+instance Pretty SType where
+  pretty = \case
+    TVariable v con -> pretty v <+> pretty con
+    TConstant a con -> pretty a <+> pretty con
+    TLocation l ty con -> pretty l <+> parens (pretty ty) <+> pretty con
+    TArrow ti to con -> braces (pretty ti <+> pretty "->" <+> pretty to) <+> pretty con
+    TEmpty -> pretty "∅"
+    
 {-
-data SType =
-    TVariable TVariableAtom
-    | TConstant TConstantAtom
-    | TLocation Location SType
-    | TVector SType SType
-    | SType :=> SType
-    | TEmpty
-    deriving (Eq,Show)
--}
+{-
 
+For now took the decision to not go down the path of correct by construction
+(~GADTs) to allow easily interacting and "wrangling" with the types. I don't
+exclude reimplementing the other way at a later time, but I first want a POC of
+the checker.
+
+-}
 data SType a where
   TVariable :: TVariableAtom -> SType a -> SType TVariableAtom
   TConstant :: TConstantAtom -> SType a -> SType TConstantAtom
@@ -69,3 +79,4 @@ instance Pretty (SType a) where
       TLocation loc t con -> bracket (pretty t) <> pretty "@" <> pretty loc <++> pretty con
       TArrow t1 t2 con -> arrow (pretty t1) (pretty t2) <++> pretty con
       TEmpty -> pretty "∅"
+-}
