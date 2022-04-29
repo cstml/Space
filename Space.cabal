@@ -153,6 +153,7 @@ test-suite tests
   build-depends:
     , containers
     , hedgehog
+    , HUnit
     , lens
     , mtl
     , prettyprinter

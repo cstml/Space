@@ -18,7 +18,7 @@ test1 =
     "Evaluator Machine Tests"
     [ testCase "Simple Operations" $ do
         let int = flip SInteger SEmpty
-            home = Location "Ho"
+            home = DLocation
         assertEqual
           "Working Push Int 3s."
           ( ok

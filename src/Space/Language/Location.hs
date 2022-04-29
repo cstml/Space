@@ -1,14 +1,17 @@
 module Space.Language.Location where
 
-import Data.Kind
-import GHC.TypeLits
+import Data.String
 import Prettyprinter
 import Space.Aux.Show
 import Space.Language.Variable
 
-newtype Location = Location String
-  deriving stock (Show)
-  deriving newtype (Eq, Ord)
+data Location = DLocation | Location String
+  deriving stock (Show, Eq, Ord)
 
 instance Pretty Location where
-  pretty (Location l) = pretty "@" <> pretty l
+  pretty = \case
+    DLocation -> pretty "@"
+    Location l -> pretty "@" <> pretty l
+
+instance IsString Location where
+  fromString = Location

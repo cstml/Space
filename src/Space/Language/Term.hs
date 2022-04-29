@@ -32,10 +32,16 @@ instance Pretty Term where
      in \case
           SVariable x con -> pretty x <++> pretty con
           SInteger i con -> pretty i <++> pretty con
-          SChar c con -> pretty c <++> pretty con
-          SPush t l con -> brackets (pretty t) <++> pretty l <++> pretty con
-          SPop v l con -> angles (pretty v) <++> pretty l <++> pretty con
-          SPopT v l ty con -> angles (pretty v <+> colon <+> pretty ty) <++> pretty l <++> pretty con
+          SChar c con -> squotes (pretty c) <++> pretty con
+          SPush t l con -> case l of
+            DLocation -> brackets (pretty t) <++> pretty con
+            _ -> brackets (pretty t) <> pretty l <++> pretty con
+          SPop v l con -> case l of
+            DLocation -> angles (pretty v) <++> pretty con
+            _ -> angles (pretty v) <> pretty l <++> pretty con
+          SPopT v l ty con -> case l of
+            DLocation -> angles (pretty v <> colon <> pretty ty) <++> pretty con
+            _ -> angles (pretty v <> colon <> pretty ty) <> pretty l <++> pretty con
           SEmpty -> pretty "*"
 
 instance Semigroup Term where

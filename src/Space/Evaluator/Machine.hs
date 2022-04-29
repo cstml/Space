@@ -117,19 +117,19 @@ evaluate = \case
   (unfoldTerm -> x : cons) ->
     let con = mconcat cons
      in case x of
-          SInteger _ _ -> push1 (Location "Ho") x >> evaluate con
-          SChar _ _ -> push1 (Location "Ho") x >> evaluate con
+          SInteger _ _ -> push1 DLocation x >> evaluate con
+          SChar _ _ -> push1 DLocation x >> evaluate con
           SPop v l _ -> (bind1 v =<< pop1 l) >> evaluate con
           SPush t l _ -> push1 l t >> evaluate con
           SVariable (Variable v) _ ->
             let op o = do
-                  (ta, a) <- toNum <$> pop1 (Location "Ho")
-                  (tb, b) <- toNum <$> pop1 (Location "Ho")
+                  (ta, a) <- toNum <$> pop1 DLocation
+                  (tb, b) <- toNum <$> pop1 DLocation
                   let res = o <$> a <*> b
                   case res of
                     Nothing ->
                       lift . throwE $ TypeMissmatch $ "Expected 2 Ints, got: " <> show ta <> " " <> show tb
-                    Just res' -> push1 (Location "Ho") (fromNum res') >> evaluate con
+                    Just res' -> push1 DLocation (fromNum res') >> evaluate con
              in case v of
                   "+" -> op (+)
                   "-" -> op (-)
