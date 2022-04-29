@@ -106,30 +106,31 @@ library
     Space.Parser.Term
 
 executable tui-interface
-  import:           Extensions
-  import:           Dependencies
-  import:           Language
-  import:           Config
-  main-is:          REPL.hs
-  hs-source-dirs:   app
-  hs-source-dirs:   src
-  other-modules:    Space.Interface.REPL
+  import:         Extensions
+  import:         Dependencies
+  import:         Language
+  import:         Config
+  main-is:        REPL.hs
+  hs-source-dirs: app
+  hs-source-dirs: src
+  other-modules:  Space.Interface.REPL
   build-depends:
     , base
     , brick
     , vty
-  ghc-options:      -threaded -rtsopts
+
+  ghc-options:    -threaded -rtsopts
 
 executable repl
-  import:           Extensions
-  import:           Dependencies
-  import:           Language
-  import:           Config
-  main-is:          REPL.hs
-  hs-source-dirs:   repl
-  hs-source-dirs:   src
-  other-modules:    Space.Interface.REPL
-  
+  import:         Extensions
+  import:         Dependencies
+  import:         Language
+  import:         Config
+  main-is:        REPL.hs
+  hs-source-dirs: repl
+  hs-source-dirs: src
+  other-modules:  Space.Interface.REPL
+
 test-suite tests
   import:         Extensions
   import:         Language

@@ -28,7 +28,7 @@ pTerm =
           , pEmptyTerm
           ]
 
--- | 
+-- |
 pTerm' = pTerm <|> pure SEmpty
 
 pLocation :: Parser Location
@@ -39,7 +39,7 @@ pLocation = lex_ $ do
   pure . Location $ [a, b]
 
 pEmptyTerm :: Parser Term
-pEmptyTerm =  P.char '*' >> return SEmpty
+pEmptyTerm = P.char '*' >> return SEmpty
 
 pVar :: Parser Variable
 pVar = Variable . pure <$> lex_ P.lowerChar

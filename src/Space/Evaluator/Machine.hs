@@ -145,11 +145,10 @@ evaluate = \case
 
 eval :: MachineMemory -> Term -> Either MException MachineMemory
 eval mem = go . run mem . void . evaluate
-  where
+ where
   go = \case
     (Left e, _) -> Left e
     (Right (), mem) -> Right mem
-
 
 evaluate' :: Term -> Either MException MachineMemory
 evaluate' = go . run mempty . void . evaluate

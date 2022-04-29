@@ -11,4 +11,4 @@ newtype Location = Location String
   deriving newtype (Eq, Ord)
 
 instance Pretty Location where
-  pretty (Location l) = pretty "@" <> pretty l 
+  pretty (Location l) = pretty "@" <> pretty l

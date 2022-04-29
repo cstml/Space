@@ -14,8 +14,8 @@ main = do
   putStrLn $ unlines $ E.getEditContents $ st ^. editor
   putStrLn "In input 2 you entered:\n"
   putStrLn $ unlines $ E.getEditContents $ st ^. editor
-  ((show . parseTerm) -> nStr) <- pure $ mconcat $ E.getEditContents $ st ^. editor
-  let nst = st & editor .~ (nEd nStr)
+  (show . parseTerm -> nStr) <- pure $ mconcat $ E.getEditContents $ st ^. editor
+  let nst = st & editor .~ nEd nStr
   st <- M.defaultMain repl nst
   putStrLn "In input 1 you entered:\n"
   putStrLn $ unlines $ E.getEditContents $ st ^. editor
