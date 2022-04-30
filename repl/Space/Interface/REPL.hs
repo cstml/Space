@@ -66,7 +66,7 @@ dispatch mem = do
 
 exeCommand :: Command -> MachineMemory -> String -> IO ()
 exeCommand = \case
-  CQuit -> \_ _ -> pure ()
+  CQuit -> \_ _ -> putStrLn (spaceiStdConfig ^. siBye)
   CInterpret -> \m s -> step m s >>= dispatch
   CLoad -> \m (_ : path) -> readFile path >>= step m >>= dispatch
   cHelp -> \m _ -> putStrLn (spaceiStdConfig ^. siHelp) >> dispatch m

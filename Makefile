@@ -22,6 +22,10 @@ build-repl:
 	cabal new-build repl 
 
 # Starts a repl
+build-interpreter:
+	cabal new-build interpreter
+
+# Starts a repl
 repl:
 	cabal new-repl
 
@@ -30,6 +34,9 @@ test:
 
 lint:
 	hlint .
+
+watch-build-interpreter:
+	git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.hs' | entr make build-interpreter
 
 watch-build-repl:
 	git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.hs' | entr make build-repl
