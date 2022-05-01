@@ -1,1 +1,1 @@
-module Space.Interpreter  where
+module Space.Interpreter where

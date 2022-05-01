@@ -5,22 +5,17 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
-
-import Data.String
 import Data.Kind
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Maybe (fromMaybe)
 import Data.Sequence
-
+import Data.String
 import Space.Evaluator.Exception
+import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
-import Space.Evaluator.Machine
-
 import Space.Language
-
-
 
 type MachineMemory = Memory Location Variable Term
 
@@ -30,13 +25,14 @@ newtype Environment = Environment ()
 
 type SMachine a = ReaderT Environment (ExceptT MException (State MachineMemory)) a
 
-instance EvaluationMachine
-  (ReaderT Environment (ExceptT MException (State (Memory Location Variable Term))))
-  (Memory Location Variable Term)
-  Variable
-  Location
-  Identity
-    where
+instance
+  EvaluationMachine
+    (ReaderT Environment (ExceptT MException (State (Memory Location Variable Term))))
+    (Memory Location Variable Term)
+    Variable
+    Location
+    Identity
+  where
   getMemory = get
   putMemory = put
   updateMemory f = getMemory >>= putMemory . f
@@ -80,10 +76,9 @@ instance EvaluationMachine
     bind1 v t
     return t
 
-  input  = pure (fromString "")
-  
-  output = const $ pure ()
+  input = pure (fromString "")
 
+  output = const $ pure ()
 
 toNum :: Term -> (Term, Maybe Int)
 toNum t = case t of

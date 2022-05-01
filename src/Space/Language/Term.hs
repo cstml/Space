@@ -31,40 +31,32 @@ instance Pretty Term where
         (<++>) x y = x <> pretty sep <> y
      in \case
           SVariable x con -> case con of
-            SEmpty -> pretty x 
+            SEmpty -> pretty x
             _ -> pretty x <++> pretty con
-            
           SInteger i con -> case con of
             SEmpty -> pretty i
             _ -> pretty i <++> pretty con
-            
           SChar c con -> case con of
-            SEmpty -> squotes (pretty c) 
+            SEmpty -> squotes (pretty c)
             _ -> squotes (pretty c) <++> pretty con
-          
           SPush t l con -> case l of
             DLocation -> case con of
               SEmpty -> brackets (pretty t)
               _ -> brackets (pretty t) <++> pretty con
-              
             _ -> case con of
-              SEmpty -> brackets (pretty t) <> pretty l 
+              SEmpty -> brackets (pretty t) <> pretty l
               _ -> brackets (pretty t) <> pretty l <++> pretty con
-            
           SPop v l con -> case l of
             DLocation -> case con of
               SEmpty -> angles (pretty v)
               _ -> angles (pretty v) <++> pretty con
-              
             _ -> case con of
-              SEmpty -> angles (pretty v) <> pretty l 
+              SEmpty -> angles (pretty v) <> pretty l
               _ -> angles (pretty v) <> pretty l <++> pretty con
-            
           SPopT v l ty con -> case l of
             DLocation -> case con of
-              SEmpty -> angles (pretty v <> colon <> pretty ty) 
+              SEmpty -> angles (pretty v <> colon <> pretty ty)
               _ -> angles (pretty v <> colon <> pretty ty) <++> pretty con
-              
             _ -> case con of
               SEmpty -> angles (pretty v <> colon <> pretty ty) <> pretty l
               _ -> angles (pretty v <> colon <> pretty ty) <> pretty l <++> pretty con

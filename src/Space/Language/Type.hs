@@ -18,15 +18,15 @@ instance IsString TVariableAtom where
   fromString = TVariableAtom
 
 data TConstantAtom = TChar | TInt
-  deriving stock (Eq, Ord,Show)
+  deriving stock (Eq, Ord, Show)
   deriving (Generic)
 
 instance Pretty TConstantAtom where
   pretty =
     let go = \case
           TChar -> "Ch"
-          TInt  -> "Z"
-    in pretty . go  
+          TInt -> "Z"
+     in pretty . go
 
 data SType
   = TVariable TVariableAtom SType
@@ -39,42 +39,37 @@ data SType
 
 infixl 7 ->:
 
--- | Utility Function for easy creation of arrows. 
+-- | Utility Function for easy creation of arrows.
 (->:) :: SType -> SType -> SType
 (->:) x y = TArrow x y TEmpty
 
 instance Pretty SType where
   pretty =
-    let
-      sep = pretty ";"
-      (<++>) x y =  x <> sep <> y
-      multip = pretty "."
-    in
-        \case
+    let sep = pretty ";"
+        (<++>) x y = x <> sep <> y
+        multip = pretty "."
+     in \case
           TVariable v con -> case con of
             TEmpty -> pretty v
             _ -> pretty v <+> pretty con
           TConstant a con -> case con of
-            TEmpty -> pretty a 
+            TEmpty -> pretty a
             _ -> pretty a <++> pretty con
- 
           TLocation l ty con ->
-            let
-              prettyl = case l of
---                DLocation -> pretty ""
-                _ -> pretty l
-            in case con of
-              TEmpty -> parens (pretty ty) <> prettyl
-              _ ->  parens (pretty ty) <> prettyl <++> pretty con
-              
+            let prettyl = case l of
+                  --                DLocation -> pretty ""
+                  _ -> pretty l
+             in case con of
+                  TEmpty -> parens (pretty ty) <> prettyl
+                  _ -> parens (pretty ty) <> prettyl <++> pretty con
           TArrow ti to con -> case con of
-            TEmpty -> brackets (pretty ti <+> pretty "->" <+> pretty to) 
+            TEmpty -> brackets (pretty ti <+> pretty "->" <+> pretty to)
             _ -> brackets (pretty ti <+> pretty "->" <+> pretty to) <++> pretty con
-            
-          TMany n ti con ->   case con of
+          TMany n ti con -> case con of
             TEmpty -> pretty n <> multip <> braces (pretty ti)
             _ -> pretty n <> multip <> braces (pretty ti) <++> pretty con
           TEmpty -> pretty "{}"
+
 {-
 {-
 

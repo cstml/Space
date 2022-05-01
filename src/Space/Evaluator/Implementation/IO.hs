@@ -5,21 +5,18 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
-
-import Data.String
 import Data.Kind
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Maybe (fromMaybe)
 import Data.Sequence
-
+import Data.String
 import Space.Evaluator.Exception
+import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
-import Space.Evaluator.Machine
-import Space.Parser
-
 import Space.Language
+import Space.Parser
 
 type MachineMemory = Memory Location Variable Term
 
@@ -29,13 +26,14 @@ newtype Environment = Environment ()
 
 type SMachine a = ReaderT Environment (ExceptT MException (StateT MachineMemory IO)) a
 
-instance EvaluationMachine
-  (ReaderT Environment (ExceptT MException (StateT MachineMemory IO)))
-  MachineMemory
-  Variable
-  Location
-  IO
-    where
+instance
+  EvaluationMachine
+    (ReaderT Environment (ExceptT MException (StateT MachineMemory IO)))
+    MachineMemory
+    Variable
+    Location
+    IO
+  where
   getMemory = get
   putMemory = put
   updateMemory f = getMemory >>= putMemory . f
@@ -77,10 +75,10 @@ instance EvaluationMachine
     bind1 v t
     return t
 
---  input  = fromString <$> (lift . lift . lift $  getLine)
-  input  = fromString <$> ( liftIO $  getLine)
-           
-  output x = ( liftIO $  putStrLn . show $ x )
+  --  input  = fromString <$> (lift . lift . lift $  getLine)
+  input = fromString <$> (liftIO getLine)
+
+  output x = liftIO $ putStrLn . show $ x
 
   run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runStateT state
 
@@ -102,24 +100,19 @@ evaluate = \case
     let con = mconcat cons
      in case x of
           SInteger _ _ -> push1 DLocation x >> evaluate con
-          
           SChar _ _ -> push1 DLocation x >> evaluate con
-          
           SPop v l _ -> case l of
             Location "In" -> do
-               i <- input
-               case parseTerm i of
-                 Left e -> error $ show e
-                 Right t -> bind1 v t
-               evaluate con
-              
+              i <- input
+              case parseTerm i of
+                Left e -> error $ show e
+                Right t -> bind1 v t
+              evaluate con
             _ -> (bind1 v =<< pop1 l) >> evaluate con
-            
           SPush t l _ -> case l of
             Location "Ou" ->
-              output t >> evaluate con 
+              output t >> evaluate con
             _ -> push1 l t >> evaluate con
-            
           SVariable (Variable v) _ ->
             let op o = do
                   (ta, a) <- toNum <$> pop1 DLocation

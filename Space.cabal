@@ -26,16 +26,16 @@ common Config
 common Extensions
   default-extensions:
     DataKinds
-    MultiParamTypeClasses
-    FlexibleContexts
-    FlexibleInstances
     DeriveGeneric
     DerivingVia
+    FlexibleContexts
+    FlexibleInstances
     GADTs
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
     KindSignatures
     LambdaCase
+    MultiParamTypeClasses
     RankNTypes
     ScopedTypeVariables
     TemplateHaskell
@@ -51,6 +51,7 @@ common Dependencies
     , lens
     , megaparsec
     , mtl
+    , optparse-applicative
     , parsers
     , prettyprinter
     , QuickCheck
@@ -61,17 +62,16 @@ common Dependencies
     , tasty-quickcheck
     , text
     , transformers
-    , optparse-applicative
 
 common Language
   hs-source-dirs:   src
   other-modules:
     Space
-    Space.Evaluator.Implementation.Pure
-    Space.Evaluator.Implementation.IO
     Space.Aux.Show
     Space.Evaluator
     Space.Evaluator.Exception
+    Space.Evaluator.Implementation.IO
+    Space.Evaluator.Implementation.Pure
     Space.Evaluator.Machine
     Space.Evaluator.Memory
     Space.Evaluator.Stack
@@ -105,11 +105,11 @@ library
     Space.Aux.Show
     Space.Evaluator
     Space.Evaluator.Exception
+    Space.Evaluator.Implementation.IO
+    Space.Evaluator.Implementation.Pure
     Space.Evaluator.Machine
     Space.Evaluator.Memory
     Space.Evaluator.Stack
-    Space.Evaluator.Implementation.Pure
-    Space.Evaluator.Implementation.IO    
     Space.Language
     Space.Language.Empty
     Space.Language.Location
@@ -141,26 +141,26 @@ common Repl
   other-modules:  Space.Interface.REPL
 
 executable repl
-  import:        Repl
-  import:        Extensions
-  import:        Dependencies
-  import:        Language
-  import:        Config
-  main-is:       REPL.hs
+  import:  Repl
+  import:  Extensions
+  import:  Dependencies
+  import:  Language
+  import:  Config
+  main-is: REPL.hs
 
 common Interpreter
   hs-source-dirs: interpreter
   other-modules:  Space.Interpreter
-  
+
 executable Interpreter
-  import: Interpreter
+  import:        Interpreter
   import:        Extensions
   import:        Dependencies
   import:        Language
   import:        Config
   main-is:       Interpreter.hs
   other-modules: Space.Interpreter
-  
+
 test-suite tests
   import:        Repl
   import:        Extensions

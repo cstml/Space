@@ -3,8 +3,8 @@ module Test.Space.Evaluator.Machine where
 import Control.Lens
 import Data.Map qualified as M
 import Data.Sequence qualified as S
-import Space.Evaluator.Implementation.Pure
 import Space
+import Space.Evaluator.Implementation.Pure
 import Test.Tasty
 import Test.Tasty.HUnit
 

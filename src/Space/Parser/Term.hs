@@ -26,13 +26,13 @@ pTerm =
           , pVariable
           , pVariable'
           , pPushHo
-          , pPushHo'          
+          , pPushHo'
           , pPush
-          , pPush'          
+          , pPush'
           , pPopHo
           , pPopHo'
           , pPop
-          , pPop'          
+          , pPop'
           ]
 
 -- |
@@ -58,12 +58,12 @@ pVariable = do
   v <$> pTerm'
 
 pImpliedStar :: Parser Term
-pImpliedStar = (void P.eol) <|> P.eof >> pure SEmpty
+pImpliedStar = void P.eol <|> P.eof >> pure SEmpty
 
 pVariable' :: Parser Term
 pVariable' = do
   (SVariable . Variable . pure -> v) <- lex_ P.printChar
-  _ <- (void P.eol) <|> P.eof
+  _ <- void P.eol <|> P.eof
   pure $ v SEmpty
 
 pChar :: Parser Term
@@ -86,7 +86,7 @@ pInteger = do
 pInteger' :: Parser Term
 pInteger' = do
   (SInteger -> i) <- lex_ P.decimal
-  _ <- (void P.eol) <|> P.eof
+  _ <- void P.eol <|> P.eof
   i <$> pImpliedStar
 
 pPushHo :: Parser Term

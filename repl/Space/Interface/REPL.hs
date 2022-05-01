@@ -45,7 +45,7 @@ replEval s mem =
 step :: MachineMemory -> String -> IO MachineMemory
 step mem input = do
   let (out, mem') = replEval input mem
-  print (pretty out)  
+  print (pretty out)
   pure mem'
 
 data Command = CInterpret | CQuit | CLoad | CHelp
