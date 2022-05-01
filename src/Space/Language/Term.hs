@@ -30,18 +30,44 @@ instance Pretty Term where
     let sep = ";"
         (<++>) x y = x <> pretty sep <> y
      in \case
-          SVariable x con -> pretty x <++> pretty con
-          SInteger i con -> pretty i <++> pretty con
-          SChar c con -> squotes (pretty c) <++> pretty con
+          SVariable x con -> case con of
+            SEmpty -> pretty x 
+            _ -> pretty x <++> pretty con
+            
+          SInteger i con -> case con of
+            SEmpty -> pretty i
+            _ -> pretty i <++> pretty con
+            
+          SChar c con -> case con of
+            SEmpty -> squotes (pretty c) 
+            _ -> squotes (pretty c) <++> pretty con
+          
           SPush t l con -> case l of
-            DLocation -> brackets (pretty t) <++> pretty con
-            _ -> brackets (pretty t) <> pretty l <++> pretty con
+            DLocation -> case con of
+              SEmpty -> brackets (pretty t)
+              _ -> brackets (pretty t) <++> pretty con
+              
+            _ -> case con of
+              SEmpty -> brackets (pretty t) <> pretty l 
+              _ -> brackets (pretty t) <> pretty l <++> pretty con
+            
           SPop v l con -> case l of
-            DLocation -> angles (pretty v) <++> pretty con
-            _ -> angles (pretty v) <> pretty l <++> pretty con
+            DLocation -> case con of
+              SEmpty -> angles (pretty v)
+              _ -> angles (pretty v) <++> pretty con
+              
+            _ -> case con of
+              SEmpty -> angles (pretty v) <> pretty l 
+              _ -> angles (pretty v) <> pretty l <++> pretty con
+            
           SPopT v l ty con -> case l of
-            DLocation -> angles (pretty v <> colon <> pretty ty) <++> pretty con
-            _ -> angles (pretty v <> colon <> pretty ty) <> pretty l <++> pretty con
+            DLocation -> case con of
+              SEmpty -> angles (pretty v <> colon <> pretty ty) 
+              _ -> angles (pretty v <> colon <> pretty ty) <++> pretty con
+              
+            _ -> case con of
+              SEmpty -> angles (pretty v <> colon <> pretty ty) <> pretty l
+              _ -> angles (pretty v <> colon <> pretty ty) <> pretty l <++> pretty con
           SEmpty -> pretty "*"
 
 instance Semigroup Term where

@@ -7,6 +7,9 @@ import Data.Sequence qualified as S
 import Data.String
 import Data.Text qualified as T
 import Prettyprinter (pretty, Pretty)
+
+import Space.Evaluator.Implementation.Pure
+import Space.Evaluator
 import Space
 import Space.Interface.REPL
 import Space.Language qualified as L
@@ -29,12 +32,12 @@ test =
         , testCase "Variable." $ sPretty (SVariable "x" SEmpty)  @?= "x"
         , testCase "Integer." $ sPretty (SInteger 3 SEmpty) @?= "3"
         , testCase "Char." $ sPretty (SChar 's' SEmpty) @?= "'s'"
-        , testCase "Push default location." $ sPretty (SPush (SChar 's' SEmpty) DLocation SEmpty) @?= "['s'];"
-        , testCase "Push arbitrary location." $ sPretty (SPush (SChar 's' SEmpty) "Lo" SEmpty) @?= "['s']@Lo;"
-        , testCase "Pop default location." $ sPretty (SPop "x" DLocation SEmpty) @?= "<x>;"
-        , testCase "Pop arbitrary location." $ sPretty (SPop "x" "Lo" SEmpty) @?= "<x>@Lo;"
-        , testCase "Pop typed default location." $ sPretty (SPopT "x" DLocation TEmpty SEmpty) @?= "<x:{}>;"
-        , testCase "Pop typed arbitrary location." $ sPretty (SPopT "x" "Lo" TEmpty SEmpty) @?= "<x:{}>@Lo;"
+        , testCase "Push default location." $ sPretty (SPush (SChar 's' SEmpty) DLocation SEmpty) @?= "['s']"
+        , testCase "Push arbitrary location." $ sPretty (SPush (SChar 's' SEmpty) "Lo" SEmpty) @?= "['s']@Lo"
+        , testCase "Pop default location." $ sPretty (SPop "x" DLocation SEmpty) @?= "<x>"
+        , testCase "Pop arbitrary location." $ sPretty (SPop "x" "Lo" SEmpty) @?= "<x>@Lo"
+        , testCase "Pop typed default location." $ sPretty (SPopT "x" DLocation TEmpty SEmpty) @?= "<x:{}>"
+        , testCase "Pop typed arbitrary location." $ sPretty (SPopT "x" "Lo" TEmpty SEmpty) @?= "<x:{}>@Lo"
         ]
     , testGroup
       "Pretty Show Types."

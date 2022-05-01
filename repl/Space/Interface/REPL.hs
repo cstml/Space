@@ -3,6 +3,7 @@ module Space.Interface.REPL where
 import Control.Lens
 import Prettyprinter
 import Space
+import Space.Evaluator.Implementation.Pure
 
 data SpaceiConfig = SpaceiConfig
   { _siWelcome :: String

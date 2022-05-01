@@ -1,6 +1,5 @@
 module Space.Evaluator.Implementation.IO where
 
-
 import Control.Lens hiding (Empty, (:<), (<|))
 import Control.Monad.Reader
 import Control.Monad.State
@@ -18,6 +17,7 @@ import Space.Evaluator.Exception
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Evaluator.Machine
+import Space.Parser
 
 import Space.Language
 
@@ -27,11 +27,10 @@ type MachineMemory = Memory Location Variable Term
 
 newtype Environment = Environment ()
 
-type SMachine a = ReaderT Environment (ExceptT MException (State MachineMemory)) a
-
+type SMachine a = ReaderT Environment (ExceptT MException (StateT MachineMemory IO)) a
 
 instance EvaluationMachine
-  (ReaderT Environment (ExceptT MException (State MachineMemory)))
+  (ReaderT Environment (ExceptT MException (StateT MachineMemory IO)))
   MachineMemory
   Variable
   Location
@@ -68,8 +67,6 @@ instance EvaluationMachine
         putMemory (m & stacks . at l .~ Nothing)
         pure SEmpty
 
-  run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runState state >>> pure
-
   -- bind1 :: Variable -> Term -> SMachine ()
   bind1 v t = do
     m <- getMemory
@@ -80,10 +77,12 @@ instance EvaluationMachine
     bind1 v t
     return t
 
-  input  = pure (fromString "")
-  
-  output = const $ pure ()
+--  input  = fromString <$> (lift . lift . lift $  getLine)
+  input  = fromString <$> ( liftIO $  getLine)
+           
+  output x = ( liftIO $  putStrLn . show $ x )
 
+  run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runStateT state
 
 toNum :: Term -> (Term, Maybe Int)
 toNum t = case t of
@@ -94,18 +93,33 @@ fromNum :: Int -> Term
 fromNum = flip SInteger SEmpty
 
 evaluate ::
-  (EvaluationMachine (ReaderT Environment (ExceptT MException (State MachineMemory))) MachineMemory v Location IO) =>
+  (EvaluationMachine (ReaderT Environment (ExceptT MException (StateT MachineMemory IO))) MachineMemory Variable Location IO) =>
   Term ->
-  ReaderT Environment (ExceptT MException (State MachineMemory)) MachineMemory
+  ReaderT Environment (ExceptT MException (StateT MachineMemory IO)) MachineMemory
 evaluate = \case
   SEmpty -> getMemory
   (unfoldTerm -> x : cons) ->
     let con = mconcat cons
      in case x of
           SInteger _ _ -> push1 DLocation x >> evaluate con
+          
           SChar _ _ -> push1 DLocation x >> evaluate con
-          SPop v l _ -> (bind1 v =<< pop1 l) >> evaluate con
-          SPush t l _ -> push1 l t >> evaluate con
+          
+          SPop v l _ -> case l of
+            Location "In" -> do
+               i <- input
+               case parseTerm i of
+                 Left e -> error $ show e
+                 Right t -> bind1 v t
+               evaluate con
+              
+            _ -> (bind1 v =<< pop1 l) >> evaluate con
+            
+          SPush t l _ -> case l of
+            Location "Ou" ->
+              output t >> evaluate con 
+            _ -> push1 l t >> evaluate con
+            
           SVariable (Variable v) _ ->
             let op o = do
                   (ta, a) <- toNum <$> pop1 DLocation

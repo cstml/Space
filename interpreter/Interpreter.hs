@@ -4,13 +4,45 @@ import Control.Lens
 import Control.Monad
 import Prettyprinter
 import Space
-import Space.Interpreter
-import Space.Evaluator.Implementation.Pure as Pure
+import Space.Evaluator.Implementation.IO qualified as II
+import Options.Applicative qualified as OPT
+
+data Input =
+  FileInput String
+  | StdInput
+  | Command String
 
 main :: IO ()
 main = do
-  (either (error.show) id . parseTerm -> t) <- getLine
-  let m = either (error.show) id $ eval mempty t
+  inp <- OPT.execParser (OPT.info inputFrom OPT.fullDesc)
+  rt <- case inp of
+          FileInput x ->  readFile x
+          StdInput -> do getLine >>= readFile
+          Command x -> pure x
+  let t = either (error.show) id . parseTerm $ rt
+  m <- either (error.show) id <$> II.eval mempty t
   print m
+  -- print "()"
    
+command :: OPT.Parser Input
+command = Command <$> OPT.strOption
+  (  OPT.long "command"
+  <> OPT.short 'c'
+  <> OPT.metavar "Command"
+  <> OPT.help "Command for executing"
+  )
 
+fileInput :: OPT.Parser Input
+fileInput = FileInput <$> OPT.strOption
+  (  OPT.long "file"
+  <> OPT.short 'f'
+  <> OPT.metavar "FILENAME"
+  <> OPT.help "Input file" )
+
+stdInput :: OPT.Parser Input
+stdInput = OPT.flag' StdInput
+  (  OPT.long "stdin"
+  <> OPT.help "Read from stdin" )
+
+inputFrom :: OPT.Parser Input
+inputFrom = fileInput OPT.<|> stdInput OPT.<|> command

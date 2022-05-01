@@ -25,11 +25,18 @@ unit =
   let stdTest r1 t1 r2 t2 = do
         let str = r1 <> ";*"
         assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
+        let str = r1
+        assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
+        let str = r1 <> ";"
+        assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
 
         let str = r1 <> "    ;    *"
         assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
 
         let str = r1 <> " ; " <> r2 <> " ; *"
+        assertEqual str (Just $ t1 $ t2 SEmpty) (tParseTerm str)
+
+        let str = r1 <> " ; " <> r2 <> ";"
         assertEqual str (Just $ t1 $ t2 SEmpty) (tParseTerm str)
 
         let str = r1 <> " {-; " <> r2 <> " -}; *"

@@ -44,12 +44,11 @@ class  EvaluationMachine
   getMemory :: mac mem
   putMemory :: mem -> mac ()
   updateMemory :: (mem -> mem) -> mac ()
-  run :: mem -> mac () -> m2 (Either MException (), mem)
   putStack :: location -> MachineStack -> mac ()
   pop1 :: location -> mac Term
   pop1Bind :: var -> location -> mac Term
   bind1 :: var -> Term -> mac ()
   push1 :: location -> Term -> mac ()
-
-  input ::  (IsString a) => mac a
-  output :: (IsString a) => a -> mac ()
+  input ::  IsString a => mac a
+  output :: Show a => a -> mac ()
+  run :: mem -> mac () -> m2 (Either MException (), mem)
