@@ -26,9 +26,10 @@ unit =
         let str = r1 <> ";*"
         assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
         let str = r1
+
         assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
         let str = r1 <> ";"
-        assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
+        assertEqual str (Just $ t1 SEmpty) (tParseTerm str)        
 
         let str = r1 <> "    ;    *"
         assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
@@ -47,10 +48,18 @@ unit =
         , testCase "Parse Variable." $ stdTest "x" (SVariable (Variable "x")) "y" (SVariable (Variable "y"))
         , testCase "Parse Char." $ stdTest "'x'" (SChar 'x') "'y'" (SChar 'y')
         , testCase "Parse Int." $ stdTest "1" (SInteger 1) "20" (SInteger 20)
-        , let t x = SPush (SVariable (Variable x) SEmpty) (Location "Ho")
-           in testCase "Parse Push Ho." $ stdTest "[ x ; * ]" (t "x") "[y;*]" (t "y")
+        , let t x = SPush (SVariable (Variable x) SEmpty) DLocation
+           in testCase "Parse Push Default Location." $ stdTest "[ x ; * ]" (t "x") "[y;*]" (t "y")
+        , let t x = SPush (SVariable (Variable x) SEmpty) DLocation
+           in testCase "Parse Push Default Locataion." $ stdTest "[ x;* ]" (t "x") "[y;*]" (t "y")
+        , let t x = SPush (SVariable (Variable x) SEmpty) DLocation
+           in testCase "Parse Push Default Locataion." $ stdTest "[x;*]" (t "x") "[ y;*   ]" (t "y")
+        , let t x = SPush (SInteger x SEmpty) DLocation 
+           in testCase "Parse Push Default Locataion." $ stdTest "[1;*]" (t 1) "[ 2;*   ]" (t 2)
         , let t x l = SPush (SVariable (Variable x) SEmpty) (Location l)
            in testCase "Parse Push arbitrary." $ stdTest "@In[ x ; * ]" (t "x" "In") "@Ou[y;*]" (t "y" "Ou")
+        , let t x l = SPush (SVariable (Variable x) SEmpty) (Location l)
+           in testCase "Parse Push arbitrary." $ stdTest "@In[ x;* ]" (t "x" "In") "@Ou[y;*]" (t "y" "Ou")
         , let t x l = SPop (Variable x) (Location l)
            in testCase "Parse Pop Ho." $ stdTest "<x>" (t "x" "Ho") "<y>" (t "y" "Ho")
         , let t x l = SPop (Variable x) (Location l)

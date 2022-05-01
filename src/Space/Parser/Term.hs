@@ -25,8 +25,8 @@ pTerm =
           , pInteger'
           , pVariable
           , pVariable'
-          , pPushHo
-          , pPushHo'
+          , pPushDef
+          , pPushDef'
           , pPush
           , pPush'
           , pPopHo
@@ -35,8 +35,11 @@ pTerm =
           , pPop'
           ]
 
--- |
-pTerm' = pTerm <|> pure SEmpty
+pTerm1 =
+  lex_ . P.choice $
+    P.try <$> [ pVariable1 ]
+      
+pTerm' = pTerm <|> pImpliedStar
 
 pLocation :: Parser Location
 pLocation = lex_ $ do
@@ -48,8 +51,16 @@ pLocation = lex_ $ do
 pEmptyTerm :: Parser Term
 pEmptyTerm = P.char '*' >> return SEmpty
 
+pEmptyTerm1 :: Parser Term
+pEmptyTerm1 = return SEmpty
+
 pVar :: Parser Variable
 pVar = Variable . pure <$> lex_ P.lowerChar
+
+pImpliedStar :: Parser Term
+pImpliedStar = do
+  P.choice $ P.try <$> [ void P.eol , P.eof , space_]
+  pure SEmpty
 
 pVariable :: Parser Term
 pVariable = do
@@ -57,13 +68,20 @@ pVariable = do
   pSeparator
   v <$> pTerm'
 
-pImpliedStar :: Parser Term
-pImpliedStar = void P.eol <|> P.eof >> pure SEmpty
-
 pVariable' :: Parser Term
 pVariable' = do
   (SVariable . Variable . pure -> v) <- lex_ P.printChar
   _ <- void P.eol <|> P.eof
+  pure $ v SEmpty
+
+pVariable'' :: Parser Term
+pVariable'' = do
+  (SVariable . Variable . pure -> v) <- lex_ P.printChar
+  pure $ v SEmpty
+
+pVariable1 :: Parser Term
+pVariable1 = do
+  (SVariable . Variable . pure -> v) <- lex_ P.printChar
   pure $ v SEmpty
 
 pChar :: Parser Term
@@ -89,28 +107,28 @@ pInteger' = do
   _ <- void P.eol <|> P.eof
   i <$> pImpliedStar
 
-pPushHo :: Parser Term
-pPushHo = do
-  (\x -> SPush x (Location "Ho") -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
+pPushDef :: Parser Term
+pPushDef = do
+  (flip SPush DLocation -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm'
   pSeparator
   p <$> pTerm'
 
-pPushHo' :: Parser Term
-pPushHo' = do
-  (\x -> SPush x (Location "Ho") -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
+pPushDef' :: Parser Term
+pPushDef' = do
+  (flip SPush DLocation -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm'
   p <$> pImpliedStar
 
 pPush :: Parser Term
 pPush = do
   l <- pLocation
-  ((`SPush` l) -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
+  ((`SPush` l) -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm'
   pSeparator
   p <$> pTerm'
 
 pPush' :: Parser Term
 pPush' = do
   l <- pLocation
-  ((`SPush` l) -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
+  ((`SPush` l) -> p) <- P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm'
   p <$> pImpliedStar
 
 pPopHo :: Parser Term
