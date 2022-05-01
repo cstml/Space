@@ -17,7 +17,7 @@ main = do
   inp <- OPT.execParser (OPT.info inputFrom OPT.fullDesc)
   rt <- case inp of
           FileInput x ->  readFile x
-          StdInput -> do getLine >>= readFile
+          StdInput -> getLine
           Command x -> pure x
   let t = either (error.show) id . parseTerm $ rt
   m <- either (error.show) id <$> II.eval mempty t
