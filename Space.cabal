@@ -1,7 +1,7 @@
 cabal-version:      2.4
-name:               space-lang
+name:               spc
 version:            0.1.0.0
-synopsis:           A declarative, statically typed, stack programing language.
+synopsis:           A declarative, statically typed, stack based programing language.
 
 -- A longer description of the package.
 -- description:
@@ -152,7 +152,7 @@ common Interpreter
   hs-source-dirs: interpreter
   other-modules:  Space.Interpreter
 
-executable Interpreter
+executable spc
   import:        Interpreter
   import:        Extensions
   import:        Dependencies
