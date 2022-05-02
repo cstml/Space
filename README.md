@@ -3,8 +3,9 @@
 A declarative, statically typed, stack programing language. Inspired by the
 FMC, FMCt, and Forth.
 
-Ideas:
 
-- make a step debugger that steps through the spine of the term as it executes.
+## Potential Ideas
 
-- ? make a progam that actually does something.
+- [ ] a step debugger that steps through the the term as it executes.
+
+- [x] make a progam that actually does something.
