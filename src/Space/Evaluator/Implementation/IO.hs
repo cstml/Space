@@ -34,13 +34,12 @@ instance
     Location
     IO
   where
-
-  output = liftIO . putStrLn . show
+  output = liftIO . print
   getMemory = get
   putMemory = put
   updateMemory f = getMemory >>= putMemory . f
   putStack l s = getMemory >>= putMemory . (stacks . ix l .~ s)
-  
+
   -- push1 :: Location -> Term -> SMachine ()
   push1 l t = do
     mem <- getMemory
@@ -49,7 +48,7 @@ instance
           Nothing -> review stack $ singleton t
     let nMem = mem & stacks . at l ?~ b
     putMemory nMem
-  
+
   -- pop1 ::  Location -> SMachine Term
   pop1 l = do
     m <- getMemory
@@ -66,20 +65,26 @@ instance
       EmptyL -> do
         putMemory (m & stacks . at l .~ Nothing)
         pure SEmpty
-  
+
   -- bind1 :: Variable -> Term -> SMachine ()
   bind1 v t = do
     m <- getMemory
     putMemory $ m & binds . at v ?~ t
-  
+
   pop1Bind v l = do
     t <- pop1 l
     bind1 v t
     return t
-  
+
+  getBind v = do
+    mem <- getMemory
+    case mem ^. binds . at v of
+      Just t -> pure t
+      Nothing -> pure $ SVariable v SEmpty
+
   --  input  = fromString <$> (lift . lift . lift $  getLine)
   input = fromString <$> liftIO getLine
-  
+
   run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runStateT state
 
 toNum :: Term -> (Term, Maybe Int)
@@ -121,7 +126,8 @@ evaluate = \case
                   case res of
                     Nothing ->
                       lift . throwE $ TypeMissmatch $ "Expected 2 Ints, got: " <> show ta <> " " <> show tb
-                    Just res' -> push1 DLocation (fromNum res') >> evaluate con
+                    Just res' ->
+                      push1 DLocation (fromNum res') >> evaluate con
              in case v of
                   "+" -> op (+)
                   "-" -> op (-)
@@ -129,9 +135,10 @@ evaluate = \case
                   "^" -> op (^)
                   "/" -> op div
                   _ -> do
-                    mem <- getMemory
-                    let t = mem ^. binds . ix (Variable v)
-                    evaluate $ t <> con
+                    t <- getBind $ Variable v
+                    if t == x
+                      then push1 DLocation t >> evaluate con
+                      else evaluate $ t <> con
 
 (>>>) = flip (.)
 

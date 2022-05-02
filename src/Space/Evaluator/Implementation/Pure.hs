@@ -80,6 +80,12 @@ instance
 
   output = const $ pure ()
 
+  getBind v = do
+    mem <- getMemory
+    case mem ^. binds . at v of
+      Just t -> pure t
+      Nothing -> pure $ SVariable v SEmpty
+
 toNum :: Term -> (Term, Maybe Int)
 toNum t = case t of
   SInteger x SEmpty -> (t, pure x)
@@ -117,9 +123,10 @@ evaluate = \case
                   "^" -> op (^)
                   "/" -> op div
                   _ -> do
-                    mem <- getMemory
-                    let t = mem ^. binds . ix (Variable v)
-                    evaluate $ t <> con
+                    t <- getBind $ Variable v
+                    if t == x
+                      then push1 DLocation t >> evaluate con
+                      else evaluate $ t <> con
 
 (>>>) = flip (.)
 

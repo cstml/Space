@@ -56,13 +56,17 @@ test =
                   "Io"
                   (TVariable "x" TEmpty)
                   ( TConstant TInt $
-                      TLocation DLocation (TConstant TChar TEmpty)
+                      TLocation
+                        DLocation
+                        (TConstant TChar TEmpty)
                         TEmpty
                   )
                   ->: TLocation
                     DLocation
                     TEmpty
-                    ( TMany 5 (TConstant TChar TEmpty)
+                    ( TMany
+                        5
+                        (TConstant TChar TEmpty)
                         TEmpty
                     )
            in testCase "Type Vector with all types of Types." $ sPretty term @?= termR

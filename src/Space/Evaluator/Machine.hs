@@ -47,6 +47,7 @@ class
   pop1 :: location -> mac Term
   pop1Bind :: var -> location -> mac Term
   bind1 :: var -> Term -> mac ()
+  getBind :: var -> mac Term
   push1 :: location -> Term -> mac ()
   input :: IsString a => mac a
   output :: Show a => a -> mac ()

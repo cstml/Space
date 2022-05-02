@@ -119,4 +119,41 @@ test1 =
           "Working error."
           (err $ TypeMissmatch "Expected 2 Ints, got: SChar 'a' SEmpty SChar 'a' SEmpty")
           (evaluate' . mconcat $ [char, char, op "/"])
+
+        assertEqual
+          "Self evaluation"
+          ( ok
+              ( mempty @MachineMemory
+                  & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [varT "x"])]
+              )
+          )
+          (evaluate' . mconcat $ [varT "x"])
+
+        assertEqual
+          "Self evaluation 2"
+          (ok $ Memory {_spine = SEmpty, _stacks = mempty, _binds = M.fromList [(Variable "x", SEmpty)]})
+          ( evaluate' . mconcat $
+              [ SPush SEmpty DLocation SEmpty
+              , SPop (Variable "x") DLocation SEmpty
+              , varT "x"
+              ]
+          )
+        assertEqual
+          "Self evaluation 3"
+          ( ok
+              ( Memory
+                  { _spine = SEmpty
+                  , _stacks =
+                      M.fromList
+                        [(DLocation, Stack {_stack = S.fromList [SVariable (Variable "x") SEmpty]})]
+                  , _binds = M.fromList [(Variable "y", SVariable (Variable "x") SEmpty)]
+                  }
+              )
+          )
+          ( evaluate' . mconcat $
+              [ SPush (varT "x") DLocation SEmpty
+              , SPop (Variable "y") DLocation SEmpty
+              , varT "y"
+              ]
+          )
     ]
