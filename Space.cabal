@@ -1,7 +1,8 @@
 cabal-version:      2.4
-name:               space-lang
+name:               spc
 version:            0.1.0.0
-synopsis:           A declarative, statically typed, stack programing language.
+synopsis:
+  A declarative, statically typed, stack based programing language.
 
 -- A longer description of the package.
 -- description:
@@ -19,20 +20,23 @@ extra-source-files:
   CHANGELOG.md
   README.md
 
-common common-config
+common Config
   default-language: Haskell2010
   build-depends:    base
 
 common Extensions
   default-extensions:
     DataKinds
+    DeriveGeneric
     DerivingVia
-    DerivingVia
+    FlexibleContexts
+    FlexibleInstances
     GADTs
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
     KindSignatures
     LambdaCase
+    MultiParamTypeClasses
     RankNTypes
     ScopedTypeVariables
     TemplateHaskell
@@ -43,9 +47,13 @@ common Dependencies
   build-depends:
     , base
     , containers
+    , ghc-prim
     , hedgehog
     , lens
+    , megaparsec
     , mtl
+    , optparse-applicative
+    , parsers
     , prettyprinter
     , QuickCheck
     , tasty
@@ -53,6 +61,7 @@ common Dependencies
     , tasty-hedgehog
     , tasty-hunit
     , tasty-quickcheck
+    , text
     , transformers
 
 common Language
@@ -62,6 +71,8 @@ common Language
     Space.Aux.Show
     Space.Evaluator
     Space.Evaluator.Exception
+    Space.Evaluator.Implementation.IO
+    Space.Evaluator.Implementation.Pure
     Space.Evaluator.Machine
     Space.Evaluator.Memory
     Space.Evaluator.Stack
@@ -72,11 +83,22 @@ common Language
     Space.Language.Type
     Space.Language.Variable
     Space.Language.Vector
+    Space.Parser
+    Space.Parser.Term
+    Space.Parser.Token
 
   other-extensions: OverloadedStrings
 
+common Test
+  hs-source-dirs: test
+  other-modules:
+    Test.Space.Evaluator.Machine
+    Test.Space.Language
+    Test.Space.Parser
+
 library
   import:          Extensions
+  import:          Config
   import:          Dependencies
   hs-source-dirs:  src
   exposed-modules:
@@ -84,6 +106,8 @@ library
     Space.Aux.Show
     Space.Evaluator
     Space.Evaluator.Exception
+    Space.Evaluator.Implementation.IO
+    Space.Evaluator.Implementation.Pure
     Space.Evaluator.Machine
     Space.Evaluator.Memory
     Space.Evaluator.Stack
@@ -94,36 +118,63 @@ library
     Space.Language.Type
     Space.Language.Variable
     Space.Language.Vector
+    Space.Parser
+    Space.Parser.Term
+
+--executable tui-interface
+--  import:         Extensions
+--  import:         Dependencies
+--  import:         Language
+--  import:         Config
+--  main-is:        REPL.hs
+--  hs-source-dirs: app
+--  hs-source-dirs: src
+--  other-modules:  Space.Interface.REPL
+--  build-depends:
+--    , base
+--    , brick
+--    , vty
+--
+--  ghc-options:    -threaded -rtsopts
+
+common Repl
+  hs-source-dirs: repl
+  other-modules:  Space.Interface.REPL
 
 executable repl
-  import:           Extensions
-  import:           Dependencies
-  import:           Language
-  main-is:          REPL.hs
-  hs-source-dirs:   app
-  other-modules:    Space.Interface.REPL
-  build-depends:
-    , base
-    , brick
-    , space-lang
-    , vty
+  import:  Repl
+  import:  Extensions
+  import:  Dependencies
+  import:  Language
+  import:  Config
+  main-is: REPL.hs
 
-  default-language: Haskell2010
-  ghc-options:      -threaded -rtsopts
+common Interpreter
+  hs-source-dirs: interpreter
+  other-modules:  Space.Interpreter
 
---  ghc-options:      -Wall -threaded -rtsopts
+executable spc
+  import:        Interpreter
+  import:        Extensions
+  import:        Dependencies
+  import:        Language
+  import:        Config
+  main-is:       Interpreter.hs
+  other-modules: Space.Interpreter
 
 test-suite tests
-  import:         common-config
-  import:         Extensions
-  import:         Language
-  type:           exitcode-stdio-1.0
-  main-is:        Test.hs
-  hs-source-dirs: test src
-  other-modules:  Test.Space.Evaluator.Machine
+  import:        Repl
+  import:        Extensions
+  import:        Language
+  import:        Dependencies
+  import:        Test
+  import:        Config
+  type:          exitcode-stdio-1.0
+  main-is:       Test.hs
   build-depends:
     , containers
     , hedgehog
+    , HUnit
     , lens
     , mtl
     , prettyprinter

@@ -8,28 +8,59 @@ import Space.Language.Type
 import Space.Language.Variable
 import Space.Language.Vector
 
-{- This sort of AST is the tag specifc one used in my previous project. Will
- attempt at a tagless initial together with a tagless final implementation.
+{-
 
-More on the two techniques can be found here:
+In the end forflexibility reasons chose to go down the path of continuantio
+style terms.
 
-- https://serokell.io/blog/introduction-tagless-final.
 -}
+
 data Term
   = SVariable Variable Term
   | SInteger Int Term
   | SChar Char Term
   | SPush Term Location Term
   | SPop Variable Location Term
+  | SPopT Variable Location SType Term
   | SEmpty
   deriving (Eq, Show, Ord)
 
 instance Pretty Term where
   pretty =
-    let sep = " "
-        (<++>) x y = x <+> pretty sep <+> y
+    let sep = ";"
+        (<++>) x y = x <> pretty sep <> y
      in \case
-          SVariable x con -> pretty x <++> pretty con
+          SVariable x con -> case con of
+            SEmpty -> pretty x
+            _ -> pretty x <++> pretty con
+          SInteger i con -> case con of
+            SEmpty -> pretty i
+            _ -> pretty i <++> pretty con
+          SChar c con -> case con of
+            SEmpty -> squotes (pretty c)
+            _ -> squotes (pretty c) <++> pretty con
+          SPush t l con -> case l of
+            DLocation -> case con of
+              SEmpty -> brackets (pretty t)
+              _ -> brackets (pretty t) <++> pretty con
+            _ -> case con of
+              SEmpty -> brackets (pretty t) <> pretty l
+              _ -> brackets (pretty t) <> pretty l <++> pretty con
+          SPop v l con -> case l of
+            DLocation -> case con of
+              SEmpty -> angles (pretty v)
+              _ -> angles (pretty v) <++> pretty con
+            _ -> case con of
+              SEmpty -> angles (pretty v) <> pretty l
+              _ -> angles (pretty v) <> pretty l <++> pretty con
+          SPopT v l ty con -> case l of
+            DLocation -> case con of
+              SEmpty -> angles (pretty v <> colon <> pretty ty)
+              _ -> angles (pretty v <> colon <> pretty ty) <++> pretty con
+            _ -> case con of
+              SEmpty -> angles (pretty v <> colon <> pretty ty) <> pretty l
+              _ -> angles (pretty v <> colon <> pretty ty) <> pretty l <++> pretty con
+          SEmpty -> pretty "*"
 
 instance Semigroup Term where
   (<>) = \case
@@ -118,7 +149,7 @@ instance PShow (Term a) where
           SPop var loc con -> ang (pShow var) <> pShow loc <> pShow con
           SPush loc con -> pShow loc <> pShow con
           SEmpty -> "*"
--}
+4-}
 {-
 ex1 :: Term (Vector Char Void)
 ex1 = SChar 'x' SEmpty

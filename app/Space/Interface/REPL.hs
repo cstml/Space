@@ -22,8 +22,11 @@ data St = St
 
 makeLenses ''St
 
+nEd :: String -> E.Editor String Input
+nEd = E.editor Input (Just 100)
+
 ed :: E.Editor String Input
-ed = E.editor Input (Just 10) "Hello"
+ed = nEd "Hello"
 
 appEvent :: St -> T.BrickEvent Input e -> T.EventM Input (T.Next St)
 appEvent st (T.VtyEvent ev) =
@@ -39,7 +42,6 @@ drawUI :: St -> [T.Widget Input]
 drawUI st = [ui]
  where
   e1 = F.withFocusRing (st ^. focusRing) (E.renderEditor (str . unlines)) (st ^. editor)
-  --        e2 = F.withFocusRing (st^.focusRing) (E.renderEditor (str . unlines)) (st^.editor)
 
   ui =
     C.center $
@@ -61,7 +63,7 @@ theMap =
 initialState =
   St
     (F.focusRing [Input])
-    (E.editor Input (Just 10) "")
+    (E.editor Input (Just 800) "")
 
 repl :: M.App St e Input
 repl =

@@ -9,6 +9,7 @@ import Control.Monad.Trans.State
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Sequence
+import Prettyprinter
 import Space.Evaluator.Stack
 import Space.Language
 import Space.Language.Empty
@@ -32,3 +33,30 @@ instance (Ord b, Ord l, Semigroup t) => Semigroup (Memory l b t) where
 
 instance (Ord b, Ord l, Monoid t) => Monoid (Memory l b t) where
   mempty = Memory mempty mempty mempty
+
+instance (Show l, Show b, Show t, Pretty l, Pretty b, Pretty t) => Pretty (Memory l b t) where
+  pretty mem =
+    vsep
+      [ vsep
+          [ pretty "Spine:"
+          , indent 4 $ pretty (mem ^. spine)
+          ]
+      , vsep
+          [ pretty "Stacks:"
+          , indent 4 (pretty (mem ^. stacks))
+          ]
+      , vsep
+          [ pretty "Binds:"
+          , indent 4 (pretty (mem ^. binds))
+          ]
+      , emptyDoc
+      ]
+
+instance (Show l, Show t, Pretty l, Pretty t) => Pretty (Map l t) where
+  pretty m = Map.foldrWithKey go emptyDoc m
+   where
+    go k v doc =
+      vsep
+        [ pretty k <> colon <+> pretty v
+        , doc
+        ]

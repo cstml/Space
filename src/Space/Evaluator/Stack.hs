@@ -1,17 +1,17 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-
 module Space.Evaluator.Stack where
 
 import Control.Lens
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
-import Data.Map (Map)
-import Data.Map qualified as Map
-import Data.Sequence
+import Data.Sequence qualified as S
+import Prettyprinter
 
-newtype Stack a = Stack {_stack :: Seq a}
+newtype Stack a = Stack {_stack :: S.Seq a}
   deriving stock (Eq, Show)
-  deriving newtype (Semigroup, Monoid)
+  deriving newtype (Semigroup, Monoid, Foldable)
+
+instance (Show a, Pretty a) => Pretty (Stack a) where
+  pretty = foldr (\a doc -> pretty a <+> pipe <+> doc) emptyDoc
 
 makeLenses ''Stack

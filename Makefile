@@ -1,3 +1,9 @@
+# Extensions necessary to tell hlint about
+EXTENSIONS=-XTypeApplications -XTemplateHaskell -XImportQualifiedPost -XPatternSynonyms -XBangPatterns
+SOURCES=$$(git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.hs')
+CABAL_FILES=$$(git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.cabal')
+NIX_FILES=$$(git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.nix')
+
 .PHONY: clean format build lint-watch compile-watch haddock-generate repl-start	\
 				documentation test all-files tags mkTags
 
@@ -12,6 +18,13 @@ tags:
 run: build
 	cabal new run FMCt-web
 
+build-repl:
+	cabal new-build repl 
+
+# Starts a repl
+build-interpreter:
+	cabal new-build interpreter
+
 # Starts a repl
 repl:
 	cabal new-repl
@@ -21,6 +34,12 @@ test:
 
 lint:
 	hlint .
+
+watch-build-interpreter:
+	git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.hs' | entr make build-interpreter
+
+watch-build-repl:
+	git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.hs' | entr make build-repl
 
 # Start a lint watcher
 watch-lint:
@@ -53,12 +72,6 @@ documentation:
 
 mkTags:
 	hasktags .
-
-# Extensions necessary to tell hlint about
-EXTENSIONS=-XTypeApplications -XTemplateHaskell -XImportQualifiedPost -XPatternSynonyms -XBangPatterns
-SOURCES=$$(git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.hs')
-CABAL_FILES=$$(git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.cabal')
-NIX_FILES=$$(git ls-tree -r HEAD --full-tree --name-only | grep -E '.*\.nix')
 
 # Add folder locations to the list to be reformatted.
 format:
