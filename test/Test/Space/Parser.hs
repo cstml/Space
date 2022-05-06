@@ -25,9 +25,10 @@ unit =
   let stdTest r1 t1 r2 t2 = do
         let str = r1 <> ";*"
         assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
-        let str = r1
 
+        let str = r1
         assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
+        
         let str = r1 <> ";"
         assertEqual str (Just $ t1 SEmpty) (tParseTerm str)
 
@@ -45,11 +46,14 @@ unit =
    in testGroup
         "Parser Unit Tests"
         [ testCase "Parse empty Term" $ assertEqual "*" (Just SEmpty) (tParseTerm "*")
-        , testCase "Parse Variable." $ stdTest "x" (SVariable (Variable "x")) "y" (SVariable (Variable "y"))
+        , testCase "Parse Variable." $ let p = "[x;*];*" in  assertEqual p (Just SEmpty) (tParseTerm p)
+        , testCase "Parse Push Variable." $ stdTest "[x;]" (SVariable (Variable "x")) "y" (SVariable (Variable "y"))
         , testCase "Parse Char." $ stdTest "'x'" (SChar 'x') "'y'" (SChar 'y')
         , testCase "Parse Int." $ stdTest "1" (SInteger 1) "20" (SInteger 20)
         , let t x = SPush (SVariable (Variable x) SEmpty) DLocation
            in testCase "Parse Push Default Location." $ stdTest "[ x ; * ]" (t "x") "[y;*]" (t "y")
+        , let t x = SPush (SVariable (Variable x) SEmpty) DLocation
+          in testCase "Parse Push Default Location." $ stdTest "[ ]" (t "x") "[ ]" (t "y")
         , let t x = SPush (SVariable (Variable x) SEmpty) DLocation
            in testCase "Parse Push Default Locataion." $ stdTest "[ x;* ]" (t "x") "[y;*]" (t "y")
         , let t x = SPush (SVariable (Variable x) SEmpty) DLocation
