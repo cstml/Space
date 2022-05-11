@@ -1,5 +1,6 @@
 module Space.Language.Variable where
 
+import Control.Monad.Identity
 import Data.String
 import Prettyprinter
 

@@ -19,8 +19,6 @@ import Space.Language
 
 type MachineMemory = Memory Location Variable Term
 
---type MachineStack = Stack Term
-
 newtype Environment = Environment ()
 
 type SMachine a = ReaderT Environment (ExceptT MException (State MachineMemory)) a
