@@ -7,6 +7,7 @@ import Space.Language.Location
 import Space.Language.Type
 import Space.Language.Variable
 import Space.Language.Vector
+import Aux.Unfoldable
 
 {-
 
@@ -74,17 +75,17 @@ instance Semigroup Term where
 instance Monoid Term where
   mempty = SEmpty
 
-unfoldTerm :: Term -> [Term]
-unfoldTerm = unfoldr go
- where
-  go :: Term -> Maybe (Term, Term)
-  go = \case
-    SVariable v con -> Just (SVariable v SEmpty, con)
-    SInteger i con -> Just (SInteger i SEmpty, con)
-    SChar c con -> Just (SChar c SEmpty, con)
-    SPush tp lo con -> Just (SPush tp lo SEmpty, con)
-    SPop var lo con -> Just (SPop var lo SEmpty, con)
-    SEmpty -> Nothing
+instance Unfoldable Term where
+  unfold = unfoldr go
+   where
+    go :: Term -> Maybe (Term, Term)
+    go = \case
+      SVariable v con -> Just (SVariable v SEmpty, con)
+      SInteger i con -> Just (SInteger i SEmpty, con)
+      SChar c con -> Just (SChar c SEmpty, con)
+      SPush tp lo con -> Just (SPush tp lo SEmpty, con)
+      SPop var lo con -> Just (SPop var lo SEmpty, con)
+      SEmpty -> Nothing
 
 {-
 data Term a where

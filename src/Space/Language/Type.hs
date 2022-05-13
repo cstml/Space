@@ -1,15 +1,21 @@
 module Space.Language.Type where
 
-import Data.String
-import GHC.Generics
+import Data.List ( unfoldr )
+import Data.String ( IsString(..) )
+import GHC.Generics ( Generic )
 import Prettyprinter
-import Space.Language.Empty
-import Space.Language.Location
-import Space.Language.Variable
-import Space.Language.Vector
+    ( Pretty(pretty), (<+>), braces, brackets, parens )
+import Space.Language.Empty ()
+import Space.Language.Location ( Location )
+import Space.Language.Variable ()
+import Space.Language.Vector ()
+import Control.DeepSeq ( NFData )
+import Space.TypeCheck.Properties ( Normalise(..) )
+import Aux.Unfoldable ( Unfoldable(..) )
 
 newtype TVariableAtom = TVariableAtom String
   deriving stock (Eq, Show, Ord)
+  deriving (Generic, NFData)
 
 instance Pretty TVariableAtom where
   pretty (TVariableAtom s) = pretty s
@@ -19,14 +25,18 @@ instance IsString TVariableAtom where
 
 data TConstantAtom = TChar | TInt
   deriving stock (Eq, Ord, Show)
-  deriving (Generic)
+  deriving (Generic, NFData)
 
 instance Pretty TConstantAtom where
   pretty =
     let go = \case
           TChar -> "Ch"
           TInt -> "Z"
-     in pretty . go
+     in pretty @String . go
+
+data Rewrite =
+   AsIs
+  | NormalForm
 
 data SType
   = TVariable TVariableAtom SType
@@ -36,6 +46,7 @@ data SType
   | TMany Integer SType SType
   | TEmpty
   deriving (Eq, Show, Ord)
+  deriving (Generic, NFData)
 
 infixl 7 ->:
 
@@ -45,9 +56,9 @@ infixl 7 ->:
 
 instance Pretty SType where
   pretty =
-    let sep = pretty ";"
+    let sep = pretty @String ";"
         (<++>) x y = x <> sep <> y
-        multip = pretty "."
+        multip = pretty @String "."
      in \case
           TVariable v con -> case con of
             TEmpty -> pretty v
@@ -56,61 +67,58 @@ instance Pretty SType where
             TEmpty -> pretty a
             _ -> pretty a <++> pretty con
           TLocation l ty con ->
-            let prettyl = case l of
-                  --                DLocation -> pretty ""
-                  _ -> pretty l
-             in case con of
-                  TEmpty -> parens (pretty ty) <> prettyl
-                  _ -> parens (pretty ty) <> prettyl <++> pretty con
+            case con of
+                  TEmpty -> parens (pretty ty) <> pretty l
+                  _ -> parens (pretty ty) <> pretty l <++> pretty con
           TArrow ti to con -> case con of
-            TEmpty -> brackets (pretty ti <+> pretty "->" <+> pretty to)
-            _ -> brackets (pretty ti <+> pretty "->" <+> pretty to) <++> pretty con
+            TEmpty -> brackets (pretty ti <+> pretty @String "->" <+> pretty to)
+            _ -> brackets (pretty ti <+> pretty @String "->" <+> pretty to) <++> pretty con
           TMany n ti con -> case con of
             TEmpty -> pretty n <> multip <> braces (pretty ti)
             _ -> pretty n <> multip <> braces (pretty ti) <++> pretty con
-          TEmpty -> pretty "{}"
+          TEmpty -> pretty @String "{}"
 
-{-
-{-
+instance Semigroup SType where
+  x <> y = case x of
+    TEmpty -> y
+    TVariable a c -> TVariable a $ c <> y
+    TConstant a c -> TConstant a $ c <> y
+    TLocation l t c -> TLocation l t $ c <> y
+    TMany n t c -> TMany n t $ c <> y
+    TArrow a b c -> TArrow a b $ c <> y
 
-For now took the decision to not go down the path of correct by construction
-(~GADTs) to allow easily interacting and "wrangling" with the types. I don't
-exclude reimplementing the other way at a later time, but I first want a POC of
-the checker.
+instance Monoid SType where
+  mempty = TEmpty
 
--}
-data SType a where
-  TVariable :: TVariableAtom -> SType a -> SType TVariableAtom
-  TConstant :: TConstantAtom -> SType a -> SType TConstantAtom
-  TLocation :: Location -> SType a -> SType b -> SType Location
-  TArrow :: SType a -> SType b -> SType c -> SType (a -> b)
-  TEmpty :: SType Void
-
-instance Show (SType a) where
-  show =
-    let bracket x = "(" <> x <> ")"
-        sep = " "
-        (<++>) x y = x <> sep <> y
-     in \case
-          TVariable vAtom con -> bracket $ "TVariable " <++> bracket (show vAtom) <++> show con
-          TConstant cAtom con -> bracket $ "TConstant " <++> bracket (show cAtom) <++> show con
-          TLocation loc t con -> bracket $ "TLocation " <++> bracket (show loc) <++> show t <++> show con
-          TArrow t1 t2 con -> bracket $ "TArrow " <++> bracket (show t1) <++> bracket (show t2) <++> show con
-          TEmpty -> "TEmpty"
-
-instance Pretty (SType a) where
-  pretty = group . go
+instance Unfoldable SType where
+  unfold = unfoldr go
    where
-    sep = ","
-    (<++>) x y = x <> pretty sep <+> y
-    bracket x = pretty "(" <> x <> pretty ")"
-    curly x = "{" <> x <> "}"
-    arrow x y = x <> pretty " -> " <+> y
-    go :: SType a -> Doc ann
+    go :: SType -> Maybe (SType, SType)
     go = \case
-      TVariable vAtom con -> pretty vAtom <++> pretty con
-      TConstant cAtom con -> pretty cAtom <++> pretty con
-      TLocation loc t con -> bracket (pretty t) <> pretty "@" <> pretty loc <++> pretty con
-      TArrow t1 t2 con -> arrow (pretty t1) (pretty t2) <++> pretty con
-      TEmpty -> pretty "∅"
--}
+      TVariable v con -> Just (TVariable v TEmpty, con)
+      TConstant c con -> Just (TConstant c TEmpty, con)
+      TLocation l t con -> Just (TLocation l t TEmpty, con)
+      TArrow a b con -> Just (TArrow a b TEmpty, con)
+      TMany n a con -> Just (TMany n a TEmpty, con)
+      TEmpty -> Nothing
+
+-- FIXME
+-- It should only sort by locations
+instance Normalise SType where
+  normalise x = case x of
+    TEmpty -> x
+    TVariable a c -> TVariable a (normalise c)
+    TConstant a c -> TConstant a (normalise c)
+    TLocation l t c -> let
+      uc = unfold c
+      t' = normalise t
+      z = TLocation l t' TEmpty
+      in case uc of
+        (c':cs') ->
+          if z < c'
+            then normalise . mconcat $ [c', z, mconcat cs']
+            else z <> normalise (c' <> mconcat cs')
+        [] -> TLocation l t' (normalise c)
+    TArrow a b c -> TArrow (normalise a ) (normalise b) (normalise c)
+    TMany n t c -> TMany n (normalise t ) (normalise c)
+

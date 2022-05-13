@@ -16,6 +16,7 @@ import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
+import Aux.Unfoldable
 
 type MachineMemory = Memory Location Variable Term
 
@@ -98,7 +99,7 @@ evaluate ::
   ReaderT Environment (ExceptT MException (State MachineMemory)) MachineMemory
 evaluate = \case
   SEmpty -> getMemory
-  (unfoldTerm -> x : cons) ->
+  (unfold -> x : cons) ->
     let con = mconcat cons
      in case x of
           SInteger _ _ -> push1 DLocation x >> evaluate con

@@ -28,6 +28,7 @@ common Extensions
   default-extensions:
     DataKinds
     DeriveGeneric
+    DeriveAnyClass
     DerivingVia
     FlexibleContexts
     FlexibleInstances
@@ -56,6 +57,7 @@ common Dependencies
     , parsers
     , prettyprinter
     , QuickCheck
+    , deepseq
     , tasty
     , tasty-expected-failure
     , tasty-hedgehog
@@ -67,6 +69,7 @@ common Dependencies
 common Language
   hs-source-dirs:   src
   other-modules:
+    Aux.Unfoldable
     Space
     Space.Aux.Show
     Space.Evaluator
@@ -86,6 +89,7 @@ common Language
     Space.Parser
     Space.Parser.Term
     Space.Parser.Token
+    Space.TypeCheck.Properties
 
   other-extensions: OverloadedStrings
 
