@@ -75,8 +75,8 @@ unit =
            in testCase "Parse Push arbitrary." $ stdTest "@In[ x ; * ]" (t "x" "In") "@Ou[y;*]" (t "y" "Ou")
         , let t x l = SPush (SVariable (Variable x) SEmpty) (Location l)
            in testCase "Parse Push arbitrary." $ stdTest "@In[ x;* ]" (t "x" "In") "@Ou[y;*]" (t "y" "Ou")
-        , let t x l = SPop (Variable x) (Location l)
-           in testCase "Parse Pop Ho." $ stdTest "<x>" (t "x" "Ho") "<y>" (t "y" "Ho")
+        , let t x = SPop (Variable x) DLocation
+           in testCase "Parse Pop Ho." $ stdTest "<x>" (t "x") "<y>" (t "y")
         , let t x l = SPop (Variable x) (Location l)
            in testCase "Parse Pop arbitrary." $ stdTest "@In<x>" (t "x" "In") "@Yo<y>" (t "y" "Yo")
         ]
