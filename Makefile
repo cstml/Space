@@ -92,5 +92,8 @@ lint-inplace:
 
 lint-format: format lint-inplace
 
-example:
+example1:
 	cabal new-run spc -- -f examples/2-abstract-over-closure.sp --debug
+
+example3:
+	cabal new-run spc -- -f examples/3-read-two-numbers-and-add.sp --debug

@@ -84,7 +84,6 @@ instance
       Just t -> pure t
       Nothing -> pure $ SVariable v SEmpty
 
-  --  input  = fromString <$> (lift . lift . lift $  getLine)
   input = fromString <$> liftIO getLine
 
   run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runStateT state
@@ -127,6 +126,7 @@ evaluate = \case
 
                 -- if it is anything else, then output the term itself
                 _ -> output (pretty t) >> evaluate con
+                
             _ -> push1 l t >> evaluate con
           SVariable (Variable v) _ ->
             let op o = do

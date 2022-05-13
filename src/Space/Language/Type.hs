@@ -126,3 +126,13 @@ instance Normalise SType where
             [] -> TLocation l t' (normalise c)
     TArrow a b c -> TArrow (normalise a) (normalise b) (normalise c)
     TMany n t c -> TMany n (normalise t) (normalise c)
+
+depth :: SType -> Integer
+depth = \case
+  TVariable _ con -> 1 + (depth con)
+  TConstant _ con -> 1 + (depth con)
+  TLocation l t con -> (depth t) + (depth con)
+  TArrow a b con -> (depth a) + (depth b) + (depth con)
+  TMany n a con -> n * (depth a) + (depth con)
+  TEmpty -> 0
+

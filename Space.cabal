@@ -144,7 +144,7 @@ common Repl
   hs-source-dirs: repl
   other-modules:  Space.Interface.REPL
 
-executable repl
+executable spci
   import:  Repl
   import:  Extensions
   import:  Dependencies
