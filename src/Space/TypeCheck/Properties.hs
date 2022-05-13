@@ -3,8 +3,8 @@ module Space.TypeCheck.Properties where
 import Control.Monad.Identity
 import GHC.Base
 
-data TCError =
-  TCError
+data TCError
+  = TCError
   | TCErrorString String
 
 newtype ReduceM a = ReduceM {unReduce :: Either TCError a}

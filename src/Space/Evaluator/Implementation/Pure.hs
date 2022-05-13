@@ -1,5 +1,6 @@
 module Space.Evaluator.Implementation.Pure where
 
+import Aux.Unfoldable
 import Control.Lens hiding (Empty, (:<), (<|))
 import Control.Monad.Reader
 import Control.Monad.State
@@ -16,7 +17,6 @@ import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
-import Aux.Unfoldable
 
 type MachineMemory = Memory Location Variable Term
 

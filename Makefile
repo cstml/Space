@@ -91,3 +91,6 @@ lint-inplace:
 	echo $(SOURCES) | xargs -t -n 1 hlint --refactor --refactor-options="--inplace" # $(EXTENSIONS)
 
 lint-format: format lint-inplace
+
+example:
+	cabal new-run spc -- -f examples/2-abstract-over-closure.sp --debug

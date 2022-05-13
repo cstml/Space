@@ -12,18 +12,22 @@ data Input
   | StdInput
   | Command String
 
+data Debug = Production | Debug
+
+data Interpreter = Interpreter Input Debug
+
 main :: IO ()
 main = do
-  inp <- OPT.execParser (OPT.info inputFrom OPT.fullDesc)
+  (Interpreter inp dbg) <- OPT.execParser (OPT.info inputFrom OPT.fullDesc)
   rt <- case inp of
     FileInput x -> readFile x
     StdInput -> getLine
     Command x -> pure x
   let t = either (error . show) id . parseTerm $ rt
   m <- either (error . show) id <$> II.eval mempty t
-  print m
-
--- print "()"
+  case dbg of
+    Debug -> print $ pretty m
+    _ -> pure ()
 
 command :: OPT.Parser Input
 command =
@@ -53,5 +57,15 @@ stdInput =
         <> OPT.help "Read from stdin"
     )
 
-inputFrom :: OPT.Parser Input
-inputFrom = fileInput OPT.<|> stdInput OPT.<|> command
+inputFrom :: OPT.Parser Interpreter
+inputFrom = Interpreter <$> (fileInput OPT.<|> stdInput OPT.<|> command) <*> oDebug
+
+oDebug :: OPT.Parser Debug
+oDebug =
+  OPT.flag
+    Production
+    Debug
+    ( OPT.long "debug"
+        <> OPT.short 'd'
+        <> OPT.help "turn debugging on"
+    )

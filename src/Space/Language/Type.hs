@@ -1,17 +1,22 @@
 module Space.Language.Type where
 
-import Data.List ( unfoldr )
-import Data.String ( IsString(..) )
-import GHC.Generics ( Generic )
-import Prettyprinter
-    ( Pretty(pretty), (<+>), braces, brackets, parens )
+import Aux.Unfoldable (Unfoldable (..))
+import Control.DeepSeq (NFData)
+import Data.List (unfoldr)
+import Data.String (IsString (..))
+import GHC.Generics (Generic)
+import Prettyprinter (
+  Pretty (pretty),
+  braces,
+  brackets,
+  parens,
+  (<+>),
+ )
 import Space.Language.Empty ()
-import Space.Language.Location ( Location )
+import Space.Language.Location (Location)
 import Space.Language.Variable ()
 import Space.Language.Vector ()
-import Control.DeepSeq ( NFData )
-import Space.TypeCheck.Properties ( Normalise(..) )
-import Aux.Unfoldable ( Unfoldable(..) )
+import Space.TypeCheck.Properties (Normalise (..))
 
 newtype TVariableAtom = TVariableAtom String
   deriving stock (Eq, Show, Ord)
@@ -34,8 +39,8 @@ instance Pretty TConstantAtom where
           TInt -> "Z"
      in pretty @String . go
 
-data Rewrite =
-   AsIs
+data Rewrite
+  = AsIs
   | NormalForm
 
 data SType
@@ -68,8 +73,8 @@ instance Pretty SType where
             _ -> pretty a <++> pretty con
           TLocation l ty con ->
             case con of
-                  TEmpty -> parens (pretty ty) <> pretty l
-                  _ -> parens (pretty ty) <> pretty l <++> pretty con
+              TEmpty -> parens (pretty ty) <> pretty l
+              _ -> parens (pretty ty) <> pretty l <++> pretty con
           TArrow ti to con -> case con of
             TEmpty -> brackets (pretty ti <+> pretty @String "->" <+> pretty to)
             _ -> brackets (pretty ti <+> pretty @String "->" <+> pretty to) <++> pretty con
@@ -109,16 +114,15 @@ instance Normalise SType where
     TEmpty -> x
     TVariable a c -> TVariable a (normalise c)
     TConstant a c -> TConstant a (normalise c)
-    TLocation l t c -> let
-      uc = unfold c
-      t' = normalise t
-      z = TLocation l t' TEmpty
-      in case uc of
-        (c':cs') ->
-          if z < c'
-            then normalise . mconcat $ [c', z, mconcat cs']
-            else z <> normalise (c' <> mconcat cs')
-        [] -> TLocation l t' (normalise c)
-    TArrow a b c -> TArrow (normalise a ) (normalise b) (normalise c)
-    TMany n t c -> TMany n (normalise t ) (normalise c)
-
+    TLocation l t c ->
+      let uc = unfold c
+          t' = normalise t
+          z = TLocation l t' TEmpty
+       in case uc of
+            (c' : cs') ->
+              if z < c'
+                then normalise . mconcat $ [c', z, mconcat cs']
+                else z <> normalise (c' <> mconcat cs')
+            [] -> TLocation l t' (normalise c)
+    TArrow a b c -> TArrow (normalise a) (normalise b) (normalise c)
+    TMany n t c -> TMany n (normalise t) (normalise c)

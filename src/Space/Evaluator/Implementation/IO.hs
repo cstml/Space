@@ -1,5 +1,6 @@
 module Space.Evaluator.Implementation.IO where
 
+import Aux.Unfoldable
 import Control.Lens hiding (Empty, (:<), (<|))
 import Control.Monad.Reader
 import Control.Monad.State
@@ -11,13 +12,13 @@ import Data.Map qualified as Map
 import Data.Maybe (fromMaybe)
 import Data.Sequence
 import Data.String
+import Prettyprinter (pretty)
 import Space.Evaluator.Exception
 import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
 import Space.Parser
-import Aux.Unfoldable
 
 type MachineMemory = Memory Location Variable Term
 
@@ -116,8 +117,16 @@ evaluate = \case
               evaluate con
             _ -> (bind1 v =<< pop1 l) >> evaluate con
           SPush t l _ -> case l of
-            Location "Ou" ->
-              output t >> evaluate con
+            Location "Ou" -> do
+              case t of
+                -- if it is a variable, then get its bound value;
+                SVariable v SEmpty -> do
+                  b <- getBind v
+                  output (pretty b)
+                  evaluate con
+
+                -- if it is anything else, then output the term itself
+                _ -> output (pretty t) >> evaluate con
             _ -> push1 l t >> evaluate con
           SVariable (Variable v) _ ->
             let op o = do
@@ -153,4 +162,7 @@ eval mem term = do
     (Right (), mem) -> Right mem
 
 evaluate' :: Term -> IO (Either MException MachineMemory)
-evaluate' = eval mempty
+evaluate' term = do
+  result <- eval mempty term
+  print $ pretty <$> result
+  pure result

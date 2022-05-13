@@ -1,13 +1,13 @@
 module Space.Language.Location (
-  Location(..)
-  ) where
+  Location (..),
+) where
 
+import Control.DeepSeq
 import Data.String
+import GHC.Generics
 import Prettyprinter
 import Space.Aux.Show
 import Space.Language.Variable
-import Control.DeepSeq
-import GHC.Generics
 
 data Location = DLocation | Location String
   deriving stock (Show, Eq, Ord)

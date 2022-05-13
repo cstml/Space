@@ -1,5 +1,6 @@
 module Space.Language.Term where
 
+import Aux.Unfoldable
 import Data.List
 import Prettyprinter hiding (SChar, SEmpty)
 import Space.Language.Empty (Void)
@@ -7,7 +8,6 @@ import Space.Language.Location
 import Space.Language.Type
 import Space.Language.Variable
 import Space.Language.Vector
-import Aux.Unfoldable
 
 {-
 

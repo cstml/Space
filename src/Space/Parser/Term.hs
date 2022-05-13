@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+
 
 module Space.Parser.Term where
 
@@ -18,7 +18,7 @@ pTerm :: Parser Term
 pTerm =
   P.try pEmptyTerm
     <|> ( P.choice . fmap (P.try . pTermWithInfer) $
-            [pChar, pInteger, pPushDef, pPush, pPopHo, pPop, pVariable]
+            [pChar, pInteger, pPushDef, pPush, pPopDef, pPop, pVariable]
         )
 
 pLocation :: Parser Location
@@ -63,8 +63,8 @@ pPushDef = (`SPush` DLocation) <$> P.between (lex_ $ P.char '[') (lex_ $ P.char 
 pPush :: Parser (Term -> Term)
 pPush = flip SPush <$> pLocation <*> P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
 
-pPopHo :: Parser (Term -> Term)
-pPopHo = flip SPop (Location "Ho") <$> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
+pPopDef :: Parser (Term -> Term)
+pPopDef = flip SPop DLocation <$> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
 
 pPop :: Parser (Term -> Term)
 pPop = flip SPop <$> pLocation <*> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
