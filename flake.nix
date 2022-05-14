@@ -14,7 +14,14 @@
           config.allowBroken = true;
         };
 
-        additionalPckgs = with pkgs; [ nixfmt rlwrap ];
+        # this fixes dynamic linking of glibc on my laptop
+        space-ship = with pkgs; writeShellScriptBin "space-ship" ''
+          export LD_LIBRARY_PATH=${glibc}/lib
+          cabal run space-ship
+        '';
+
+        additionalPckgs = with pkgs; [ nixfmt rlwrap space-ship ];
+
 
         additionalHaskellPckgs = with pkgs.haskellPackages; [
           structured-haskell-mode
@@ -38,8 +45,8 @@
             root = self;
             withHoogle = true;
             modifier = drv:
-              pkgs.haskell.lib.addBuildTools drv
-              (additionalHaskellPckgs ++ additionalPckgs);
+                pkgs.haskell.lib.addBuildTools drv
+                (additionalHaskellPckgs ++ additionalPckgs);
           };
       in {
         # Used by `nix build` & `nix run` (prod exe)
