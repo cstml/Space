@@ -140,6 +140,24 @@ library
 --
 --  ghc-options:    -threaded -rtsopts
 
+common Graphics
+  build-depends:
+      gloss
+    , async
+    , stm
+    , colour
+    , hashable
+  hs-source-dirs: space-ship 
+  other-modules: Space.Interface.REPL
+
+executable space-ship
+  import:  Extensions
+  import:  Graphics
+  import:  Dependencies
+  import:  Language
+  import:  Config
+  main-is: REPL.hs
+
 common Repl
   hs-source-dirs: repl
   other-modules:  Space.Interface.REPL
