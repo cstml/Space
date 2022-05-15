@@ -29,6 +29,8 @@
           hlint
           zlib
           haskell-language-server
+
+          doctest
         ];
 
         project = returnShellEnv:

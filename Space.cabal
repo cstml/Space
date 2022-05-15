@@ -1,4 +1,4 @@
-cabal-version:      2.4
+cabal-version:      3.4
 name:               spc
 version:            0.1.0.0
 synopsis:
@@ -52,6 +52,7 @@ common Dependencies
     , hedgehog
     , lens
     , megaparsec
+    , parsec
     , mtl
     , optparse-applicative
     , parsers
@@ -71,6 +72,7 @@ common Language
     Aux.Unfoldable
     Space
     Space.Aux.Show
+    Space.Aux.Evaluate
     Space.Evaluator
     Space.Evaluator.Exception
     Space.Evaluator.Implementation.IO
@@ -140,17 +142,17 @@ library
 --
 --  ghc-options:    -threaded -rtsopts
 
-common Repl
-  hs-source-dirs: repl
-  other-modules:  Space.Interface.REPL
+common Spci
+  hs-source-dirs: spci
+  other-modules:  Space.Interface.Spci
 
 executable spci
-  import:  Repl
+  import:  Spci
   import:  Extensions
   import:  Dependencies
   import:  Language
   import:  Config
-  main-is: REPL.hs
+  main-is: Spci.hs
 
 common Interpreter
   hs-source-dirs: interpreter
@@ -166,7 +168,7 @@ executable spc
   other-modules: Space.Interpreter
 
 test-suite tests
-  import:        Repl
+  import:        Spci
   import:        Extensions
   import:        Language
   import:        Dependencies

@@ -11,7 +11,7 @@ import Prettyprinter (Pretty, pretty)
 import Space
 import Space.Evaluator
 import Space.Evaluator.Implementation.Pure
-import Space.Interface.REPL
+--import Space.Interface.REPL
 import Space.Language qualified as L
 import Space.Parser.Term as X
 import Space.Parser.Token as X

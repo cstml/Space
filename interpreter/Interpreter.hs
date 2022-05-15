@@ -5,7 +5,9 @@ import Control.Monad
 import Options.Applicative qualified as OPT
 import Prettyprinter
 import Space
-import Space.Evaluator.Implementation.IO qualified as II
+import Space.Evaluator.Implementation.IO
+import Space.Evaluator.Implementation.Pure
+import Space.Aux.Evaluate
 
 data Input
   = FileInput String
@@ -24,7 +26,7 @@ main = do
     StdInput -> getLine
     Command x -> pure x
   let t = either (error . show) id . parseTerm $ rt
-  m <- either (error . show) id <$> II.eval mempty t
+  (m :: MachineMemory) <- either (error . show @MException) id <$> eval mempty t
   case dbg of
     Debug -> print $ pretty m
     _ -> pure ()

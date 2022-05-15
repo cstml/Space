@@ -116,6 +116,43 @@ test1 =
           (evaluate' . mconcat $ [int 3, int 3, op "/"])
 
         assertEqual
+          "Comparison True."
+          ( ok
+              ( mempty @MachineMemory
+                  & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 1])]
+              )
+          )
+          (evaluate' . mconcat $ [int 3, int 3, op "=="])
+
+        assertEqual
+          "Comparison False."
+          ( ok
+              ( mempty @MachineMemory
+                  & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 0])]
+              )
+          )
+          (evaluate' . mconcat $ [int 3, int 2, op "=="])
+
+        assertEqual
+          "Inequality True."
+          ( ok
+              ( mempty @MachineMemory
+                  & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 0])]
+              )
+          )
+          (evaluate' . mconcat $ [int 3, int 3, op "/="])
+
+        assertEqual
+          "Inequality False."
+          ( ok
+              ( mempty @MachineMemory
+                  & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 1])]
+              )
+          )
+          (evaluate' . mconcat $ [int 3, int 2, op "/="])
+
+    
+        assertEqual
           "Working error."
           (err $ TypeMissmatch "Expected 2 Ints, got: SChar 'a' SEmpty SChar 'a' SEmpty")
           (evaluate' . mconcat $ [char, char, op "/"])
@@ -138,6 +175,7 @@ test1 =
               , varT "x"
               ]
           )
+          
         assertEqual
           "Self evaluation 3"
           ( ok

@@ -87,6 +87,27 @@ format:
 	cabal-fmt -i $(CABAL_FILES)
 	nixfmt $(NIX_FILES)
 
+doctest:
+	doctest \
+		-XTypeApplications \
+		-XTemplateHaskell \
+		-XPatternSynonyms \
+		-XGADTs		 \
+		-XImportQualifiedPost\
+		-XLambdaCase\
+		-XRankNTypes\
+		-XDerivingStrategies\
+		-XGeneralizedNewtypeDeriving\
+		-XDeriveGeneric\
+		-XDeriveAnyClass\
+		-XViewPatterns\
+		-XFlexibleInstances\
+		-XMultiParamTypeClasses\
+		-XFlexibleContexts\
+		-XDerivingStrategies\
+		 $$(find ./src | grep -E '*.hs$$' )
+
+
 lint-inplace:
 	echo $(SOURCES) | xargs -t -n 1 hlint --refactor --refactor-options="--inplace" # $(EXTENSIONS)
 

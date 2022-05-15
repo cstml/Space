@@ -14,6 +14,7 @@ import Text.Megaparsec qualified as P
 import Text.Megaparsec.Char qualified as P
 import Text.Megaparsec.Char.Lexer qualified as P
 
+-- | Term parser - parses any Space term.
 pTerm :: Parser Term
 pTerm =
   P.try pEmptyTerm
@@ -21,21 +22,66 @@ pTerm =
             [pChar, pInteger, pPushDef, pPush, pPopDef, pPop, pVariable]
         )
 
+-- | Location parser.
+--
+-- Locations can be arbitrary or the default location.
 pLocation :: Parser Location
-pLocation = lex_ $ do
+pLocation = P.try pLocationArbitrary <|> P.try pLocationDefault
+
+-- | Default location.
+--
+-- The default location is either a simple @ or it can be ommitted alltogether
+-- from the term 
+--
+-- Example:
+--
+-- >>> pTest parser string = P.parse parser "" (fromString string)
+--
+-- >>> pTest pLocationDefault "@"
+-- Right DLocation
+pLocationDefault :: Parser Location
+pLocationDefault = lex_ (P.char '@') >> pure DLocation
+
+-- | Arbitrary Location parser.
+-- 
+-- Arbitrary locations are strings of the form:
+-- @UpperChar+ {UpperChar | LowerChar}*
+--
+-- Example:
+--
+-- >>> pTest parser string = P.parse parser "" (fromString string)
+-- >>> pTest pLocationArbitrary "@In"
+-- Right (Location "In")
+-- >>> pTest pLocationArbitrary "@Out"
+-- Right (Location "Out")
+-- >>> pTest pLocationArbitrary "@I"
+-- Right (Location "I")
+pLocationArbitrary :: Parser Location
+pLocationArbitrary = lex_ $ do
   _ <- P.char '@'
   a <- P.upperChar
-  b <- P.alphaNumChar
-  pure . Location $ [a, b]
+  b <- P.many P.alphaNumChar
+  pure . Location $ a : b
 
 pEmptyTerm :: Parser Term
 pEmptyTerm = lex_ . P.try $ P.char '*' >> return SEmpty
 
+-- | Empty Term Infering parser.
+--
+-- It is a parser that returns a star without parsing any character. 
 pEmptyTermInfer :: Parser Term
 pEmptyTermInfer = return SEmpty
 
+-- | Variable Parser.
 pVar :: Parser Variable
-pVar = Variable . pure <$> lex_ P.printChar
+pVar = fmap Variable . lex_ $ P.choice [ atom, operation ]
+  where
+    atom = do
+      x <- P.letterChar
+      xs <- P.many P.letterChar
+      pure $ x : xs
+
+    operation =  T.unpack <$> (P.choice . fmap (P.string . fromString) $ [ "==", "/=", "+", "-", "/", "*"])
 
 pTermWithInfer :: Parser (Term -> Term) -> Parser Term
 pTermWithInfer p = do
