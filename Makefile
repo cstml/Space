@@ -118,3 +118,6 @@ example1:
 
 example3:
 	cabal new-run spc -- -f examples/3-read-two-numbers-and-add.sp --debug
+
+example4:
+	cabal new-run spc -- -f examples/4-compare-2-terms.sp --debug
