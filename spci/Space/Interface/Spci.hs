@@ -15,15 +15,18 @@ data SpaceiConfig = SpaceiConfig
 
 makeLenses ''SpaceiConfig
 
-siVersion = "v0.0.0 "
+siVersion = "v0.0.1 "
 
 spaceiStdConfig =
   SpaceiConfig
     { _siWelcome =
         mconcat $
           (<> "\n")
-            <$> [ "Space.i, version: " ++ siVersion
+            <$> [ "Space.i, version: " <> siVersion
                 , ":h for help prompt."
+                , ""
+                , "Run with rlwrap for easy use."
+                , ""
                 , "Happy Hacking!"
                 ]
     , _siPrompt = "γ> "
@@ -31,7 +34,11 @@ spaceiStdConfig =
     , _siHelp =
         mconcat $
           (<> "\n")
-            <$> [":l to load a file", ":q to quit", ":h for help"]
+            <$> [":l to load a file."
+                , ":q to quit."
+                , ":h for help."
+                , ":r to reset machine memory."
+                ]
     }
 
 replEval :: String -> MachineMemory -> (String, MachineMemory)
@@ -49,7 +56,7 @@ step mem input = do
   print (pretty out)
   pure mem'
 
-data Command = CInterpret | CQuit | CLoad | CHelp
+data Command = CInterpret | CQuit | CLoad | CHelp | CReset
 
 readCommand :: String -> (Command, String)
 readCommand = \case
@@ -58,6 +65,7 @@ readCommand = \case
       'q' -> (,) CQuit mempty
       'l' -> (,) CLoad ss
       'h' -> (,) CHelp mempty
+      'r' -> (,) CReset mempty
       _ -> (,) CHelp mempty
   x -> (CInterpret, x)
 
@@ -71,4 +79,5 @@ exeCommand = \case
   CQuit -> \_ _ -> putStrLn (spaceiStdConfig ^. siBye)
   CInterpret -> \m s -> step m s >>= dispatch
   CLoad -> \m (_ : path) -> readFile path >>= step m >>= dispatch
+  CReset -> const . const $ putStrLn "Machine Memory reset." >> dispatch mempty
   cHelp -> \m _ -> putStrLn (spaceiStdConfig ^. siHelp) >> dispatch m
