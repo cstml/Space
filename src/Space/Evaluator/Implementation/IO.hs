@@ -19,12 +19,9 @@ import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
 import Space.Parser
-
-type MachineMemory = Memory Location Variable Term
-
---type MachineStack = Stack Term
-
-newtype Environment = Environment ()
+import Space.Evaluator.Implementation.Pure hiding (eval)
+import Control.Arrow
+import Space.Aux.Evaluate
 
 type SMachine a = ReaderT Environment (ExceptT MException (StateT MachineMemory IO)) a
 
@@ -84,82 +81,19 @@ instance
       Just t -> pure t
       Nothing -> pure $ SVariable v SEmpty
 
-  --  input  = fromString <$> (lift . lift . lift $  getLine)
   input = fromString <$> liftIO getLine
 
   run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runStateT state
 
-toNum :: Term -> (Term, Maybe Int)
-toNum t = case t of
-  SInteger x SEmpty -> (t, pure x)
-  _ -> (t, Nothing)
-
-fromNum :: Int -> Term
-fromNum = flip SInteger SEmpty
-
-evaluate ::
-  (EvaluationMachine (ReaderT Environment (ExceptT MException (StateT MachineMemory IO))) MachineMemory Variable Location IO) =>
-  Term ->
-  ReaderT Environment (ExceptT MException (StateT MachineMemory IO)) MachineMemory
-evaluate = \case
-  SEmpty -> getMemory
-  (unfold -> x : cons) ->
-    let con = mconcat cons
-     in case x of
-          SInteger _ _ -> push1 DLocation x >> evaluate con
-          SChar _ _ -> push1 DLocation x >> evaluate con
-          SPop v l _ -> case l of
-            Location "In" -> do
-              i <- input
-              case parseTerm i of
-                Left e -> error $ show e
-                Right t -> bind1 v t
-              evaluate con
-            _ -> (bind1 v =<< pop1 l) >> evaluate con
-          SPush t l _ -> case l of
-            Location "Ou" -> do
-              case t of
-                -- if it is a variable, then get its bound value;
-                SVariable v SEmpty -> do
-                  b <- getBind v
-                  output (pretty b)
-                  evaluate con
-
-                -- if it is anything else, then output the term itself
-                _ -> output (pretty t) >> evaluate con
-            _ -> push1 l t >> evaluate con
-          SVariable (Variable v) _ ->
-            let op o = do
-                  (ta, a) <- toNum <$> pop1 DLocation
-                  (tb, b) <- toNum <$> pop1 DLocation
-                  let res = o <$> a <*> b
-                  case res of
-                    Nothing ->
-                      lift . throwE $ TypeMissmatch $ "Expected 2 Ints, got: " <> show ta <> " " <> show tb
-                    Just res' ->
-                      push1 DLocation (fromNum res') >> evaluate con
-             in case v of
-                  "+" -> op (+)
-                  "-" -> op (-)
-                  "*" -> op (*)
-                  "^" -> op (^)
-                  "/" -> op div
-                  _ -> do
-                    t <- getBind $ Variable v
-                    if t == x
-                      then push1 DLocation t >> evaluate con
-                      else evaluate $ t <> con
-
-(>>>) = flip (.)
-
-eval :: MachineMemory -> Term -> IO (Either MException MachineMemory)
-eval mem term = do
-  res <- run mem . void . evaluate $ term
-  return $ go res
- where
-  go = \case
-    (Left e, _) -> Left e
-    (Right (), mem) -> Right mem
+instance Evaluate MachineMemory Term MException IO where 
+--  eval :: MachineMemory -> Term -> IO (Either MException MachineMemory)
+  eval mem term = do
+    res <- run mem . void . evaluate $ term
+    return $ go res
+     where
+      go = \case
+        (Left e, _) -> Left e
+        (Right (), mem) -> Right mem
 
 evaluate' :: Term -> IO (Either MException MachineMemory)
 evaluate' term = do

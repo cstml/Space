@@ -1,9 +1,10 @@
-module Space.Interface.REPL where
+module Space.Interface.Spci where
 
 import Control.Lens
 import Prettyprinter
 import Space
 import Space.Evaluator.Implementation.Pure
+import Space.Aux.Evaluate
 
 data SpaceiConfig = SpaceiConfig
   { _siWelcome :: String
@@ -38,9 +39,9 @@ replEval s mem =
   let pr = parseTerm s
    in case pr of
         Left e -> (show e, mem)
-        Right term -> case eval mem term of
-          Left e -> (show . pretty $ e, mem)
-          Right mem' -> (show . pretty $ mem', mem')
+        Right term -> case (eval mem term) of
+          Identity (Left (e :: MException)) -> (show . pretty $ e, mem)
+          Identity (Right mem') -> (show . pretty $ mem', mem')
 
 step :: MachineMemory -> String -> IO MachineMemory
 step mem input = do

@@ -79,4 +79,6 @@ unit =
            in testCase "Parse Pop Ho." $ stdTest "<x>" (t "x") "<y>" (t "y")
         , let t x l = SPop (Variable x) (Location l)
            in testCase "Parse Pop arbitrary." $ stdTest "@In<x>" (t "x" "In") "@Yo<y>" (t "y" "Yo")
+        , testCase "Parse Equal (Variable)." $
+          stdTest "==" (SVariable (Variable "==")) "/=" (SVariable (Variable "/="))
         ]

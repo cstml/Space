@@ -17,14 +17,14 @@ import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
+import Control.Arrow
+import Space.Aux.Evaluate
 
 type MachineMemory = Memory Location Variable Term
 
 newtype Environment = Environment ()
 
-type SMachine a = ReaderT Environment (ExceptT MException (State MachineMemory)) a
-
-instance
+instance 
   EvaluationMachine
     (ReaderT Environment (ExceptT MException (State (Memory Location Variable Term))))
     (Memory Location Variable Term)
@@ -33,8 +33,11 @@ instance
     Identity
   where
   getMemory = get
+  
   putMemory = put
+  
   updateMemory f = getMemory >>= putMemory . f
+  
   putStack l s = getMemory >>= putMemory . (stacks . ix l .~ s)
 
   -- push1 :: Location -> Term -> SMachine ()
@@ -93,10 +96,12 @@ toNum t = case t of
 fromNum :: Int -> Term
 fromNum = flip SInteger SEmpty
 
-evaluate ::
-  (EvaluationMachine (ReaderT Environment (ExceptT MException (State MachineMemory))) MachineMemory v Location Identity) =>
+boolToInt x = if x then 1 else 0
+
+evaluate :: forall m . Monad m => 
+  (EvaluationMachine (ReaderT Environment (ExceptT MException (StateT MachineMemory m))) MachineMemory Variable Location m) =>
   Term ->
-  ReaderT Environment (ExceptT MException (State MachineMemory)) MachineMemory
+  ReaderT Environment (ExceptT MException (StateT MachineMemory m)) MachineMemory
 evaluate = \case
   SEmpty -> getMemory
   (unfold -> x : cons) ->
@@ -115,26 +120,31 @@ evaluate = \case
                     Nothing ->
                       lift . throwE $ TypeMissmatch $ "Expected 2 Ints, got: " <> show ta <> " " <> show tb
                     Just res' -> push1 DLocation (fromNum res') >> evaluate con
+                eq o = do
+                  t1 <- pop1 DLocation
+                  t2 <- pop1 DLocation
+                  let res = t1 `o` t2
+                  push1 DLocation (fromNum . boolToInt $ res) >> evaluate con 
              in case v of
                   "+" -> op (+)
                   "-" -> op (-)
                   "*" -> op (*)
                   "^" -> op (^)
                   "/" -> op div
+                  "==" -> eq (==)
+                  "/=" -> eq (/=)
                   _ -> do
                     t <- getBind $ Variable v
                     if t == x
                       then push1 DLocation t >> evaluate con
                       else evaluate $ t <> con
-
-(>>>) = flip (.)
-
-eval :: MachineMemory -> Term -> Either MException MachineMemory
-eval mem = go . runIdentity . run mem . void . evaluate
- where
-  go = \case
-    (Left e, _) -> Left e
-    (Right (), mem) -> Right mem
+                      
+instance Evaluate MachineMemory Term MException Identity where
+  eval mem = go . runIdentity . run mem . void . evaluate
+   where
+    go = \case
+      (Left e, _) -> Identity $ Left e
+      (Right (), mem) -> Identity $ Right mem
 
 evaluate' :: Term -> Either MException MachineMemory
 evaluate' = go . runIdentity . run mempty . void . evaluate

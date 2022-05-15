@@ -4,7 +4,7 @@ import Control.Lens
 import Control.Monad
 import Prettyprinter
 import Space
-import Space.Interface.REPL
+import Space.Interface.Spci
 
 main :: IO ()
 main = do
