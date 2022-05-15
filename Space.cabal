@@ -27,6 +27,7 @@ common Extensions
   default-extensions:
     DataKinds
     DeriveAnyClass
+    DeriveFunctor
     DeriveGeneric
     DerivingVia
     FlexibleContexts

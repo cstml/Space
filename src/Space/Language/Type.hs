@@ -43,23 +43,22 @@ data Rewrite
   = AsIs
   | NormalForm
 
-data SType
-  = TVariable TVariableAtom SType
-  | TConstant TConstantAtom SType
-  | TLocation Location SType SType
-  | TArrow SType SType SType
-  | TMany Integer SType SType
+data SType l a
+  = TVariable a (SType l a)
+  | TConstant a (SType l a)
+  | TLocation l (SType l a) (SType l a)
+  | TArrow (SType l a) (SType l a) (SType l a)
+  | TMany Integer (SType l a) (SType l a)
   | TEmpty
-  deriving (Eq, Show, Ord)
-  deriving (Generic, NFData)
+  deriving (Eq, Show, Ord, Generic, NFData, Functor)
 
 infixl 7 ->:
 
 -- | Utility Function for easy creation of arrows.
-(->:) :: SType -> SType -> SType
+(->:) :: (SType a) -> (SType a) -> (SType a)
 (->:) x y = TArrow x y TEmpty
 
-instance Pretty SType where
+instance (Pretty l, Pretty a) => Pretty (SType l a) where
   pretty =
     let sep = pretty @String ";"
         (<++>) x y = x <> sep <> y
@@ -83,7 +82,7 @@ instance Pretty SType where
             _ -> pretty n <> multip <> braces (pretty ti) <++> pretty con
           TEmpty -> pretty @String "{}"
 
-instance Semigroup SType where
+instance Semigroup (SType a) where
   x <> y = case x of
     TEmpty -> y
     TVariable a c -> TVariable a $ c <> y
@@ -92,13 +91,13 @@ instance Semigroup SType where
     TMany n t c -> TMany n t $ c <> y
     TArrow a b c -> TArrow a b $ c <> y
 
-instance Monoid SType where
+instance Monoid (SType a) where
   mempty = TEmpty
 
-instance Unfoldable SType where
+instance Unfoldable (SType a) where
   unfold = unfoldr go
    where
-    go :: SType -> Maybe (SType, SType)
+    go :: SType a -> Maybe (SType a, SType a)
     go = \case
       TVariable v con -> Just (TVariable v TEmpty, con)
       TConstant c con -> Just (TConstant c TEmpty, con)
@@ -107,9 +106,15 @@ instance Unfoldable SType where
       TMany n a con -> Just (TMany n a TEmpty, con)
       TEmpty -> Nothing
 
+instance Foldable SType where
+  foldMap f x = case x of
+    TVariable a con -> f a <> foldMap f con
+    TConstant a con -> f a <> foldMap f con
+    TLocation l t con -> foldMap f t <> foldMap f con
+  
 -- FIXME
 -- It should only sort by locations
-instance Normalise SType where
+instance Ord a => Normalise (SType a) where
   normalise x = case x of
     TEmpty -> x
     TVariable a c -> TVariable a (normalise c)
@@ -127,7 +132,7 @@ instance Normalise SType where
     TArrow a b c -> TArrow (normalise a) (normalise b) (normalise c)
     TMany n t c -> TMany n (normalise t) (normalise c)
 
-depth :: SType -> Integer
+depth :: (SType a) -> Integer
 depth = \case
   TVariable _ con -> 1 + depth con
   TConstant _ con -> 1 + depth con
