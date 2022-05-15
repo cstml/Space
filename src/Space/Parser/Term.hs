@@ -68,7 +68,11 @@ pEmptyTerm = lex_ . P.try $ P.char '*' >> return SEmpty
 --
 -- It is a parser that returns a star without parsing any character.
 pEmptyTermInfer :: Parser Term
-pEmptyTermInfer = return SEmpty
+pEmptyTermInfer = P.try $ P.lookAhead (lex_ $ P.char ']') >> return SEmpty
+
+-- | Infer that the term has finalised as parsing reached EOF.
+pEOFInfer :: Parser Term
+pEOFInfer = lex_ P.eof >> return SEmpty
 
 -- | Variable Parser.
 pVar :: Parser Variable
@@ -81,6 +85,7 @@ pVar = fmap Variable . lex_ $ P.choice [atom, operation]
 
   operation = T.unpack <$> (P.choice . fmap (P.string . fromString) $ ["==", "/=", "+", "-", "/", "*"])
 
+-- | Infer an empty term.
 pTermWithInfer :: Parser (Term -> Term) -> Parser Term
 pTermWithInfer p = do
   v <- p
@@ -89,7 +94,9 @@ pTermWithInfer p = do
       P.try
       [ lex_ pSeparator >> v <$> pTerm
       , lex_ pSeparator >> v <$> pEmptyTermInfer
+      , lex_ pSeparator >> v <$> pEOFInfer
       , v <$> pEmptyTermInfer
+      , v <$> pEOFInfer
       ]
 
 pVariable :: Parser (Term -> Term)
