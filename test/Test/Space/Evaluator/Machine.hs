@@ -151,10 +151,9 @@ test1 =
           )
           (evaluate' . mconcat $ [int 3, int 2, op "/="])
 
-    
         assertEqual
           "Working error."
-          (err $ TypeMissmatch "Expected 2 Ints, got: SChar 'a' SEmpty SChar 'a' SEmpty")
+          (err $ TypeMissmatch "Expected 2 Ints, got: 'a' 'a'.")
           (evaluate' . mconcat $ [char, char, op "/"])
 
         assertEqual
@@ -175,7 +174,7 @@ test1 =
               , varT "x"
               ]
           )
-          
+
         assertEqual
           "Self evaluation 3"
           ( ok

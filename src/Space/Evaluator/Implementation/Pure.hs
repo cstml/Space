@@ -1,6 +1,7 @@
 module Space.Evaluator.Implementation.Pure where
 
 import Aux.Unfoldable
+import Control.Arrow
 import Control.Lens hiding (Empty, (:<), (<|))
 import Control.Monad.Reader
 import Control.Monad.State
@@ -12,21 +13,20 @@ import Data.Map qualified as Map
 import Data.Maybe (fromMaybe)
 import Data.Sequence
 import Data.String
+import Prettyprinter (pretty)
+import Space.Aux.Evaluate
 import Space.Evaluator.Exception
 import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
-import Control.Arrow
-import Space.Aux.Evaluate
 import Space.Parser
-import Prettyprinter (pretty)
 
 type MachineMemory = Memory Location Variable Term
 
 newtype Environment = Environment ()
 
-instance 
+instance
   EvaluationMachine
     (ReaderT Environment (ExceptT MException (State (Memory Location Variable Term))))
     (Memory Location Variable Term)
@@ -35,11 +35,11 @@ instance
     Identity
   where
   getMemory = get
-  
+
   putMemory = put
-  
+
   updateMemory f = getMemory >>= putMemory . f
-  
+
   putStack l s = getMemory >>= putMemory . (stacks . ix l .~ s)
 
   -- push1 :: Location -> Term -> SMachine ()
@@ -100,7 +100,9 @@ fromNum = flip SInteger SEmpty
 
 boolToInt x = if x then 1 else 0
 
-evaluate :: forall m . Monad m => 
+evaluate ::
+  forall m.
+  Monad m =>
   (EvaluationMachine (ReaderT Environment (ExceptT MException (StateT MachineMemory m))) MachineMemory Variable Location m) =>
   Term ->
   ReaderT Environment (ExceptT MException (StateT MachineMemory m)) MachineMemory
@@ -111,7 +113,6 @@ evaluate = \case
      in case x of
           SInteger _ _ -> push1 DLocation x >> evaluate con
           SChar _ _ -> push1 DLocation x >> evaluate con
-          
           SPop v l _ -> case l of
             Location "In" -> do
               i <- input
@@ -120,7 +121,6 @@ evaluate = \case
                 Right t -> bind1 v t
               evaluate con
             _ -> (bind1 v =<< pop1 l) >> evaluate con
-            
           SPush t l _ -> case l of
             Location "Ou" -> do
               case t of
@@ -129,7 +129,7 @@ evaluate = \case
                   b <- getBind v
                   output (pretty b)
                   evaluate con
-                  
+            _ -> push1 l t >> evaluate con
           SVariable (Variable v) _ ->
             let op o = do
                   (ta, a) <- toNum <$> pop1 DLocation
@@ -137,14 +137,29 @@ evaluate = \case
                   let res = o <$> a <*> b
                   case res of
                     Nothing ->
-                      lift . throwE $ TypeMissmatch $ "Expected 2 Ints, got: " <> show ta <> " " <> show tb
+                      lift . throwE $ TypeMissmatch $ "Expected 2 Ints, got: " <> (show . pretty) ta <> " " <> (show . pretty) tb <> "."
                     Just res' -> push1 DLocation (fromNum res') >> evaluate con
                 eq o = do
                   t1 <- pop1 DLocation
                   t2 <- pop1 DLocation
                   let res = t1 `o` t2
-                  push1 DLocation (fromNum . boolToInt $ res) >> evaluate con 
+                  push1 DLocation (fromNum . boolToInt $ res) >> evaluate con
+
+                execIf = do
+                  term <- pop1 DLocation
+                  evaluate term
+                  result <- pop1 DLocation
+                  case result of
+                    SInteger 0 SEmpty -> do
+                      _ <- pop1 DLocation
+                      b <- pop1 DLocation
+                      evaluate (b <> con)
+                    _ -> do
+                      a <- pop1 DLocation
+                      _ <- pop1 DLocation
+                      evaluate (a <> con)
              in case v of
+                  "if" -> execIf
                   "+" -> op (+)
                   "-" -> op (-)
                   "*" -> op (*)
@@ -157,7 +172,7 @@ evaluate = \case
                     if t == x
                       then push1 DLocation t >> evaluate con
                       else evaluate $ t <> con
-                      
+
 instance Evaluate MachineMemory Term MException Identity where
   eval mem = go . runIdentity . run mem . void . evaluate
    where
