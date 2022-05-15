@@ -5,9 +5,9 @@ import Control.Monad
 import Options.Applicative qualified as OPT
 import Prettyprinter
 import Space
+import Space.Aux.Evaluate
 import Space.Evaluator.Implementation.IO
 import Space.Evaluator.Implementation.Pure
-import Space.Aux.Evaluate
 
 data Input
   = FileInput String

@@ -1,6 +1,7 @@
 module Space.Evaluator.Implementation.IO where
 
 import Aux.Unfoldable
+import Control.Arrow
 import Control.Lens hiding (Empty, (:<), (<|))
 import Control.Monad.Reader
 import Control.Monad.State
@@ -13,15 +14,14 @@ import Data.Maybe (fromMaybe)
 import Data.Sequence
 import Data.String
 import Prettyprinter (pretty)
+import Space.Aux.Evaluate
 import Space.Evaluator.Exception
+import Space.Evaluator.Implementation.Pure hiding (eval)
 import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
 import Space.Parser
-import Space.Evaluator.Implementation.Pure hiding (eval)
-import Control.Arrow
-import Space.Aux.Evaluate
 
 type SMachine a = ReaderT Environment (ExceptT MException (StateT MachineMemory IO)) a
 
@@ -85,15 +85,15 @@ instance
 
   run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runStateT state
 
-instance Evaluate MachineMemory Term MException IO where 
---  eval :: MachineMemory -> Term -> IO (Either MException MachineMemory)
+instance Evaluate MachineMemory Term MException IO where
+  --  eval :: MachineMemory -> Term -> IO (Either MException MachineMemory)
   eval mem term = do
     res <- run mem . void . evaluate $ term
     return $ go res
-     where
-      go = \case
-        (Left e, _) -> Left e
-        (Right (), mem) -> Right mem
+   where
+    go = \case
+      (Left e, _) -> Left e
+      (Right (), mem) -> Right mem
 
 evaluate' :: Term -> IO (Either MException MachineMemory)
 evaluate' term = do

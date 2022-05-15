@@ -1,5 +1,3 @@
-
-
 module Space.Parser.Term where
 
 import Control.Applicative
@@ -31,7 +29,7 @@ pLocation = P.try pLocationArbitrary <|> P.try pLocationDefault
 -- | Default location.
 --
 -- The default location is either a simple @ or it can be ommitted alltogether
--- from the term 
+-- from the term
 --
 -- Example:
 --
@@ -43,7 +41,7 @@ pLocationDefault :: Parser Location
 pLocationDefault = lex_ (P.char '@') >> pure DLocation
 
 -- | Arbitrary Location parser.
--- 
+--
 -- Arbitrary locations are strings of the form:
 -- @UpperChar+ {UpperChar | LowerChar}*
 --
@@ -68,20 +66,20 @@ pEmptyTerm = lex_ . P.try $ P.char '*' >> return SEmpty
 
 -- | Empty Term Infering parser.
 --
--- It is a parser that returns a star without parsing any character. 
+-- It is a parser that returns a star without parsing any character.
 pEmptyTermInfer :: Parser Term
 pEmptyTermInfer = return SEmpty
 
 -- | Variable Parser.
 pVar :: Parser Variable
-pVar = fmap Variable . lex_ $ P.choice [ atom, operation ]
-  where
-    atom = do
-      x <- P.letterChar
-      xs <- P.many P.letterChar
-      pure $ x : xs
+pVar = fmap Variable . lex_ $ P.choice [atom, operation]
+ where
+  atom = do
+    x <- P.letterChar
+    xs <- P.many P.letterChar
+    pure $ x : xs
 
-    operation =  T.unpack <$> (P.choice . fmap (P.string . fromString) $ [ "==", "/=", "+", "-", "/", "*"])
+  operation = T.unpack <$> (P.choice . fmap (P.string . fromString) $ ["==", "/=", "+", "-", "/", "*"])
 
 pTermWithInfer :: Parser (Term -> Term) -> Parser Term
 pTermWithInfer p = do

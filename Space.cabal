@@ -52,9 +52,9 @@ common Dependencies
     , hedgehog
     , lens
     , megaparsec
-    , parsec
     , mtl
     , optparse-applicative
+    , parsec
     , parsers
     , prettyprinter
     , QuickCheck
@@ -71,8 +71,8 @@ common Language
   other-modules:
     Aux.Unfoldable
     Space
-    Space.Aux.Show
     Space.Aux.Evaluate
+    Space.Aux.Show
     Space.Evaluator
     Space.Evaluator.Exception
     Space.Evaluator.Implementation.IO

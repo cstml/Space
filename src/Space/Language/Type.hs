@@ -129,10 +129,9 @@ instance Normalise SType where
 
 depth :: SType -> Integer
 depth = \case
-  TVariable _ con -> 1 + (depth con)
-  TConstant _ con -> 1 + (depth con)
-  TLocation l t con -> (depth t) + (depth con)
-  TArrow a b con -> (depth a) + (depth b) + (depth con)
-  TMany n a con -> n * (depth a) + (depth con)
+  TVariable _ con -> 1 + depth con
+  TConstant _ con -> 1 + depth con
+  TLocation l t con -> depth t + depth con
+  TArrow a b con -> depth a + depth b + depth con
+  TMany n a con -> n * depth a + depth con
   TEmpty -> 0
-
