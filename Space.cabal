@@ -111,6 +111,7 @@ library
     Space.Aux.Show
     Space.Evaluator
     Space.Evaluator.Exception
+    Space.Evaluator.Implementation
     Space.Evaluator.Implementation.IO
     Space.Evaluator.Implementation.Pure
     Space.Evaluator.Machine

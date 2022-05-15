@@ -22,8 +22,7 @@ import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
 import Space.Parser
-
-type SMachine a = ReaderT Environment (ExceptT MException (StateT MachineMemory IO)) a
+import Space.Evaluator.Implementation 
 
 instance
   EvaluationMachine
@@ -34,12 +33,15 @@ instance
     IO
   where
   output = liftIO . print
+  
   getMemory = get
+  
   putMemory = put
+  
   updateMemory f = getMemory >>= putMemory . f
+  
   putStack l s = getMemory >>= putMemory . (stacks . ix l .~ s)
 
-  -- push1 :: Location -> Term -> SMachine ()
   push1 l t = do
     mem <- getMemory
     let b = case mem ^. stacks . at l of
@@ -48,7 +50,6 @@ instance
     let nMem = mem & stacks . at l ?~ b
     putMemory nMem
 
-  -- pop1 ::  Location -> SMachine Term
   pop1 l = do
     m <- getMemory
     case viewl $ m ^. stacks . ix l . stack of
@@ -65,7 +66,6 @@ instance
         putMemory (m & stacks . at l .~ Nothing)
         pure SEmpty
 
-  -- bind1 :: Variable -> Term -> SMachine ()
   bind1 v t = do
     m <- getMemory
     putMemory $ m & binds . at v ?~ t
@@ -86,7 +86,6 @@ instance
   run state = flip runReaderT (Environment ()) >>> runExceptT >>> flip runStateT state
 
 instance Evaluate MachineMemory Term MException IO where
-  --  eval :: MachineMemory -> Term -> IO (Either MException MachineMemory)
   eval mem term = do
     res <- run mem . void . evaluate $ term
     return $ go res
@@ -94,9 +93,3 @@ instance Evaluate MachineMemory Term MException IO where
     go = \case
       (Left e, _) -> Left e
       (Right (), mem) -> Right mem
-
-evaluate' :: Term -> IO (Either MException MachineMemory)
-evaluate' term = do
-  result <- eval mempty term
-  print $ pretty <$> result
-  pure result
