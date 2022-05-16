@@ -1,5 +1,6 @@
 module Space.Language.Type where
 
+import Space.TypeCheck.Properties
 import Aux.Unfoldable (Unfoldable (..))
 import Control.DeepSeq (NFData)
 import Data.List (unfoldr)
@@ -17,6 +18,7 @@ import Space.Language.Location (Location)
 import Space.Language.Variable ()
 import Space.Language.Vector ()
 import Space.TypeCheck.Properties (Normalise (..))
+import Data.Kind
 
 newtype TVariableAtom = TVariableAtom String
   deriving stock (Eq, Show, Ord)
@@ -43,22 +45,42 @@ data Rewrite
   = AsIs
   | NormalForm
 
-data SType l a
-  = TVariable a (SType l a)
-  | TConstant a (SType l a)
-  | TLocation l (SType l a) (SType l a)
-  | TArrow (SType l a) (SType l a) (SType l a)
-  | TMany Integer (SType l a) (SType l a)
+data SType 
+  = TVariable TVariableAtom SType
+  | TConstant TConstantAtom SType
+  | TLocation Location SType SType
+  | TArrow    SType SType SType
+  | TMany     Integer SType SType 
   | TEmpty
-  deriving (Eq, Show, Ord, Generic, NFData, Functor)
+  deriving (Eq, Show, Ord, Generic, NFData)
+
+
+instance Semigroup SType where
+  x <> y = case x of
+    TEmpty -> y
+    TVariable a c -> TVariable a $ c <> y
+    TConstant a c -> TConstant a $ c <> y
+    TLocation l t c -> TLocation l t $ c <> y
+    TMany n t c -> TMany n t $ c <> y
+    TArrow a b c -> TArrow a b $ c <> y
+
+instance Monoid SType where
+  mempty = TEmpty
+
+instance Reduce SType where
+  reduce1 = \case
+    TEmpty -> pure TEmpty
+    TVariable a con -> case con of
+      TVariable _ con' -> TVariable a <$> (reduce1 con')
+
 
 infixl 7 ->:
 
 -- | Utility Function for easy creation of arrows.
-(->:) :: (SType a) -> (SType a) -> (SType a)
+(->:) :: SType  -> SType -> SType
 (->:) x y = TArrow x y TEmpty
 
-instance (Pretty l, Pretty a) => Pretty (SType l a) where
+instance  Pretty SType where
   pretty =
     let sep = pretty @String ";"
         (<++>) x y = x <> sep <> y
@@ -82,22 +104,10 @@ instance (Pretty l, Pretty a) => Pretty (SType l a) where
             _ -> pretty n <> multip <> braces (pretty ti) <++> pretty con
           TEmpty -> pretty @String "{}"
 
-instance Semigroup (SType a) where
-  x <> y = case x of
-    TEmpty -> y
-    TVariable a c -> TVariable a $ c <> y
-    TConstant a c -> TConstant a $ c <> y
-    TLocation l t c -> TLocation l t $ c <> y
-    TMany n t c -> TMany n t $ c <> y
-    TArrow a b c -> TArrow a b $ c <> y
-
-instance Monoid (SType a) where
-  mempty = TEmpty
-
-instance Unfoldable (SType a) where
+instance Unfoldable SType where
   unfold = unfoldr go
    where
-    go :: SType a -> Maybe (SType a, SType a)
+    go :: SType -> Maybe (SType, SType)
     go = \case
       TVariable v con -> Just (TVariable v TEmpty, con)
       TConstant c con -> Just (TConstant c TEmpty, con)
@@ -105,16 +115,10 @@ instance Unfoldable (SType a) where
       TArrow a b con -> Just (TArrow a b TEmpty, con)
       TMany n a con -> Just (TMany n a TEmpty, con)
       TEmpty -> Nothing
-
-instance Foldable SType where
-  foldMap f x = case x of
-    TVariable a con -> f a <> foldMap f con
-    TConstant a con -> f a <> foldMap f con
-    TLocation l t con -> foldMap f t <> foldMap f con
   
 -- FIXME
 -- It should only sort by locations
-instance Ord a => Normalise (SType a) where
+instance Normalise SType where
   normalise x = case x of
     TEmpty -> x
     TVariable a c -> TVariable a (normalise c)
@@ -132,7 +136,7 @@ instance Ord a => Normalise (SType a) where
     TArrow a b c -> TArrow (normalise a) (normalise b) (normalise c)
     TMany n t c -> TMany n (normalise t) (normalise c)
 
-depth :: (SType a) -> Integer
+depth :: SType -> Integer
 depth = \case
   TVariable _ con -> 1 + depth con
   TConstant _ con -> 1 + depth con
@@ -140,3 +144,4 @@ depth = \case
   TArrow a b con -> depth a + depth b + depth con
   TMany n a con -> n * depth a + depth con
   TEmpty -> 0
+
