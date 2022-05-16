@@ -1,8 +1,8 @@
 module Space.TypeCheck.Properties where
 
-import Space.TypeCheck.Exception
 import Control.Monad.Identity
 import GHC.Base
+import Space.TypeCheck.Exception
 
 newtype ReduceM a = ReduceM {unReduce :: Either TCError a}
 
@@ -26,7 +26,6 @@ class Reduce t where
 
 class Normalise t where
   normalise :: t -> t
-  
+
   (===) :: Eq t => t -> t -> Bool
   x === y = normalise x == normalise y
-  

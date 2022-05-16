@@ -1,7 +1,9 @@
 module Space.Language.Term where
 
 import Aux.Unfoldable
+import Control.DeepSeq (NFData)
 import Data.List
+import GHC.Generics
 import Prettyprinter hiding (SChar, SEmpty)
 import Space.Language.Empty (Void)
 import Space.Language.Location
@@ -11,7 +13,7 @@ import Space.Language.Vector
 
 {-
 
-In the end forflexibility reasons chose to go down the path of continuantio
+In the end, for flexibility reasons, chose to go down the path of continuantion
 style terms.
 
 -}
@@ -24,7 +26,7 @@ data Term
   | SPop Variable Location Term
   | SPopT Variable Location SType Term
   | SEmpty
-  deriving (Eq, Show, Ord)
+  deriving (Eq, Show, Ord, Generic, NFData)
 
 instance Pretty Term where
   pretty =

@@ -16,13 +16,13 @@ import Data.String
 import Prettyprinter (pretty)
 import Space.Aux.Evaluate
 import Space.Evaluator.Exception
+import Space.Evaluator.Implementation
 import Space.Evaluator.Implementation.Pure hiding (eval)
 import Space.Evaluator.Machine
 import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
 import Space.Parser
-import Space.Evaluator.Implementation 
 
 instance
   EvaluationMachine
@@ -33,13 +33,13 @@ instance
     IO
   where
   output = liftIO . print
-  
+
   getMemory = get
-  
+
   putMemory = put
-  
+
   updateMemory f = getMemory >>= putMemory . f
-  
+
   putStack l s = getMemory >>= putMemory . (stacks . ix l .~ s)
 
   push1 l t = do

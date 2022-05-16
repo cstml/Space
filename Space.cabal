@@ -91,6 +91,8 @@ common Language
     Space.Parser
     Space.Parser.Term
     Space.Parser.Token
+    Space.TypeCheck.Derivation
+    Space.TypeCheck.Exception
     Space.TypeCheck.Properties
 
   other-extensions: OverloadedStrings

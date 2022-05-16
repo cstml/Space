@@ -1,8 +1,8 @@
 module Space.Language.Type where
 
-import Space.TypeCheck.Properties
 import Aux.Unfoldable (Unfoldable (..))
 import Control.DeepSeq (NFData)
+import Data.Kind
 import Data.List (unfoldr)
 import Data.String (IsString (..))
 import GHC.Generics (Generic)
@@ -17,8 +17,7 @@ import Space.Language.Empty ()
 import Space.Language.Location (Location)
 import Space.Language.Variable ()
 import Space.Language.Vector ()
-import Space.TypeCheck.Properties (Normalise (..))
-import Data.Kind
+import Space.TypeCheck.Properties
 
 newtype TVariableAtom = TVariableAtom String
   deriving stock (Eq, Show, Ord)
@@ -45,15 +44,14 @@ data Rewrite
   = AsIs
   | NormalForm
 
-data SType 
+data SType
   = TVariable TVariableAtom SType
   | TConstant TConstantAtom SType
   | TLocation Location SType SType
-  | TArrow    SType SType SType
-  | TMany     Integer SType SType 
+  | TArrow SType SType SType
+  | TMany Integer SType SType
   | TEmpty
   deriving (Eq, Show, Ord, Generic, NFData)
-
 
 instance Semigroup SType where
   x <> y = case x of
@@ -71,16 +69,15 @@ instance Reduce SType where
   reduce1 = \case
     TEmpty -> pure TEmpty
     TVariable a con -> case con of
-      TVariable _ con' -> TVariable a <$> (reduce1 con')
-
+      TVariable _ con' -> TVariable a <$> reduce1 con'
 
 infixl 7 ->:
 
 -- | Utility Function for easy creation of arrows.
-(->:) :: SType  -> SType -> SType
+(->:) :: SType -> SType -> SType
 (->:) x y = TArrow x y TEmpty
 
-instance  Pretty SType where
+instance Pretty SType where
   pretty =
     let sep = pretty @String ";"
         (<++>) x y = x <> sep <> y
@@ -115,7 +112,7 @@ instance Unfoldable SType where
       TArrow a b con -> Just (TArrow a b TEmpty, con)
       TMany n a con -> Just (TMany n a TEmpty, con)
       TEmpty -> Nothing
-  
+
 -- FIXME
 -- It should only sort by locations
 instance Normalise SType where
@@ -144,4 +141,3 @@ depth = \case
   TArrow a b con -> depth a + depth b + depth con
   TMany n a con -> n * depth a + depth con
   TEmpty -> 0
-
