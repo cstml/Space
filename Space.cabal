@@ -91,6 +91,9 @@ common Language
     Space.Parser
     Space.Parser.Term
     Space.Parser.Token
+    Space.TypeCheck.Derivation
+    Space.TypeCheck.Derive
+    Space.TypeCheck.Exception
     Space.TypeCheck.Properties
 
   other-extensions: OverloadedStrings
@@ -101,6 +104,7 @@ common Test
     Test.Space.Evaluator.Machine
     Test.Space.Language
     Test.Space.Parser
+    Test.Space.TypeChecker.Derive
 
 library
   import:          Extensions

@@ -34,7 +34,7 @@ spaceiStdConfig =
     , _siHelp =
         mconcat $
           (<> "\n")
-            <$> [":l to load a file."
+            <$> [ ":l to load a file."
                 , ":q to quit."
                 , ":h for help."
                 , ":r to reset machine memory."

@@ -1,27 +1,22 @@
 module Space.Evaluator.Implementation where
 
 import Aux.Unfoldable
-
-import Space.Language
-import Space.Evaluator.Machine
-import Space.Evaluator.Memory
-import Space.Evaluator.Exception
-import Space.Parser
-
-
-
+import Control.Monad.Identity
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
-import Control.Monad.Identity
-import Prettyprinter (pretty)
-
 import Data.Kind
+import Prettyprinter (pretty)
+import Space.Evaluator.Exception
+import Space.Evaluator.Machine
+import Space.Evaluator.Memory
+import Space.Language
+import Space.Parser
 
 type MachineMemory = Memory Location Variable Term
-newtype Environment = Environment ()
 
+newtype Environment = Environment ()
 
 toNum :: Term -> (Term, Maybe Int)
 toNum t = case t of
@@ -105,4 +100,3 @@ evaluate = \case
                     if t == x
                       then push1 DLocation t >> evaluate con
                       else evaluate $ t <> con
-

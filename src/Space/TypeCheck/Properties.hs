@@ -1,8 +1,8 @@
 module Space.TypeCheck.Properties where
 
-import Space.TypeCheck.Exception
 import Control.Monad.Identity
 import GHC.Base
+import Space.TypeCheck.Exception
 
 newtype ReduceM a = ReduceM {unReduce :: Either TCError a}
 
@@ -21,12 +21,15 @@ instance Monad ReduceM where
 instance MonadFail ReduceM where
   fail = ReduceM . Left . TCErrorString
 
+newtype DeriveM a = DeriveM {unDerive :: Either TCError a}
+  deriving (Show, Eq)
+  deriving (Functor, Applicative, Monad, MonadFail) via ReduceM
+
 class Reduce t where
   reduce1 :: t -> ReduceM t
 
 class Normalise t where
   normalise :: t -> t
-  
+
   (===) :: Eq t => t -> t -> Bool
   x === y = normalise x == normalise y
-  
