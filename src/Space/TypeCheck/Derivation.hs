@@ -9,7 +9,7 @@ import Prettyprinter (pretty)
 import Space.Language
 
 -- | A typing context is a set of varaible and type pairings.
-newtype TContext = TContext {_tContext :: [(Variable, SType)]}
+newtype TContext = TContext {_tContext :: [(Term, SType)]}
   deriving (Show, Eq, Generic, NFData)
   deriving newtype (Semigroup, Monoid)
 

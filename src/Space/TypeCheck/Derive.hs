@@ -65,6 +65,10 @@ derive t = runReaderT (derive' t) initTDerivationInfo
     SPopT var loc ty cont -> impliesConj term (SVariable var SEmpty) cont DPop
     SEmpty -> pure . DEmpty $ TJudgement mempty SEmpty TEmpty
 
+-- | There are some types which are trivial to infer, like SInteger and SChar.
+infer1Trivial :: TJudgement -> [TSubstitution]
+infer1Trivial x = undefined
+
 getANewTVariable :: TDerivationInfo -> (SType, TDerivationInfo)
 getANewTVariable info =
   ( flip TVariable TEmpty . TVariableAtom $ (head (info ^. alphaVarStream) : head (info ^. numVarStream))
