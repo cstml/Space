@@ -1,8 +1,7 @@
 cabal-version:      3.4
 name:               spc
 version:            0.1.0.0
-synopsis:
-  A declarative, statically typed, stack based programing language.
+synopsis: A stack based programing language.
 
 -- description:
 
@@ -95,6 +94,7 @@ common Language
     Space.TypeCheck.Derive
     Space.TypeCheck.Exception
     Space.TypeCheck.Properties
+    Space.TypeCheck.TCTerm
 
   other-extensions: OverloadedStrings
 
