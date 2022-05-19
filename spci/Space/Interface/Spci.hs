@@ -1,5 +1,6 @@
 module Space.Interface.Spci where
 
+import System.IO
 import Control.Lens
 import Prettyprinter
 import Space
@@ -71,6 +72,7 @@ readCommand = \case
 
 dispatch :: MachineMemory -> IO ()
 dispatch mem = do
+  putStr "γ> " >> hFlush stdout
   (comm, input) <- readCommand <$> getLine
   exeCommand comm mem input
 

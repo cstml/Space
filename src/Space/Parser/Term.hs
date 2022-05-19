@@ -83,7 +83,7 @@ pVar = fmap Variable . lex_ $ P.choice [atom, operation]
     xs <- P.many P.letterChar
     pure $ x : xs
 
-  operation = T.unpack <$> (P.choice . fmap (P.string . fromString) $ ["==", "/=", "+", "-", "/", "*"])
+  operation = T.unpack <$> (P.choice . fmap (P.string . fromString) $ ["==", "/=", "+", "-", "/", "**", "!", "?"])
 
 -- | Infer an empty term.
 pTermWithInfer :: Parser (Term -> Term) -> Parser Term
@@ -97,6 +97,10 @@ pTermWithInfer p = do
       , lex_ pSeparator >> v <$> pEOFInfer
       , v <$> pEmptyTermInfer
       , v <$> pEOFInfer
+      , do
+          space_ 
+          x <- pTerm
+          return $  x <> (v SEmpty)
       ]
 
 pVariable :: Parser (Term -> Term)
