@@ -58,7 +58,7 @@ evaluate = \case
           SInteger _ _ -> pushGamma x >> evaluate con
           SChar _ _ -> pushGamma x >> evaluate con
           SPop v l _ -> case l of
-            Location "In" -> do
+            Location "I" -> do
               i <- input
               case parseTerm i of
                 Left e -> error $ show e
@@ -66,7 +66,7 @@ evaluate = \case
               evaluate con
             _ -> (bind1 v =<< pop1 l) >> evaluate con
           SPush t l _ -> case l of
-            Location "Ou" -> do
+            Location "O" -> do
               case t of
                 -- if it is a variable, then get its bound value;
                 SVariable v SEmpty -> do

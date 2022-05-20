@@ -7,4 +7,4 @@
 +;       -- add    -> stack: 6
 <x>;     -- bind x -> stack: *
          --        -> x : 6
-@Ou[x];  -- push to output x ~> 6
+[x]@O;  -- push to output x ~> 6

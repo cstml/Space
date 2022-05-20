@@ -113,13 +113,13 @@ pPushDef :: Parser (Term -> Term)
 pPushDef = (`SPush` DLocation) <$> P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
 
 pPush :: Parser (Term -> Term)
-pPush = flip SPush <$> pLocation <*> P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
+pPush = SPush <$> P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm <*> pLocation
 
 pPopDef :: Parser (Term -> Term)
 pPopDef = flip SPop DLocation <$> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
 
 pPop :: Parser (Term -> Term)
-pPop = flip SPop <$> pLocation <*> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
+pPop = SPop <$> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar <*> pLocation
 
 pSeparator :: Parser ()
 pSeparator = lex_ . void $ P.choice $ P.try <$> [P.char ';']

@@ -28,7 +28,7 @@ test =
     "Language Unit Tests."
     [ testGroup
         "Pretty Show Terms."
-        [ testCase "Empty." $ sPretty SEmpty @?= "*"
+        [ testCase "Empty." $ sPretty SEmpty @?= "{}"
         , testCase "Variable." $ sPretty (SVariable "x" SEmpty) @?= "x"
         , testCase "Integer." $ sPretty (SInteger 3 SEmpty) @?= "3"
         , testCase "Char." $ sPretty (SChar 's' SEmpty) @?= "'s'"
