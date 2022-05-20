@@ -24,7 +24,7 @@ test1 =
           "Working Push Int 3s."
           ( ok
               ( mempty @MachineMemory
-                  & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 3, int 3])]
+                  & spine .~ mconcat [int 3, int 3]
               )
           )
           (evaluate' . mconcat $ [int 3, int 3])
@@ -35,7 +35,7 @@ test1 =
           "Working Push Chars."
           ( ok
               ( mempty @MachineMemory
-                  & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [char, char])]
+                  & spine .~ mconcat [char, char]
               )
           )
           (evaluate' . mconcat $ [char, char])
@@ -54,7 +54,7 @@ test1 =
                   & binds . at (var "x") ?~ char
               )
           )
-          (evaluate' . mconcat $ [char, popX])
+          (evaluate' . mconcat $ [SPush char DLocation SEmpty, popX])
 
         assertEqual
           "Working Pop 1 term and put it back."
@@ -64,7 +64,13 @@ test1 =
                   & stacks . at home ?~ review stack (S.fromList [char])
               )
           )
-          (evaluate' . mconcat $ [char, popX, varX])
+          ( evaluate' . mconcat $
+              [ SPush char DLocation SEmpty
+              , popX
+              , varX
+              , SVariable (Variable "!") SEmpty
+              ]
+          )
 
         assertEqual
           "Pop 1 term and bind it to another variable."
@@ -75,7 +81,16 @@ test1 =
                   & stacks . at home ?~ review stack (S.fromList [char])
               )
           )
-          (evaluate' . mconcat $ [char, popX, varX, popY, varY])
+          ( evaluate' . mconcat $
+              [ SPush char DLocation SEmpty
+              , popX
+              , varX
+              , SVariable (Variable "!") SEmpty
+              , popY
+              , varY
+              , SVariable (Variable "!") SEmpty
+              ]
+          )
 
         assertEqual
           "Pop 1 term from stack of 2."
@@ -85,7 +100,12 @@ test1 =
                   & stacks . at home ?~ review stack (S.fromList [char])
               )
           )
-          (evaluate' . mconcat $ [char, char, popX])
+          ( evaluate' . mconcat $
+              [ SPush char DLocation SEmpty
+              , SPush char DLocation SEmpty
+              , popX
+              ]
+          )
 
         assertEqual
           "Working Pop 1 term from stack of 0."
@@ -104,7 +124,7 @@ test1 =
                   & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 6])]
               )
           )
-          (evaluate' . mconcat $ [int 3, int 3, op "+"])
+          (evaluate' . mconcat $ [int 3, int 3, op "+", SVariable (Variable "!") SEmpty])
 
         assertEqual
           "Division."
@@ -113,7 +133,7 @@ test1 =
                   & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 1])]
               )
           )
-          (evaluate' . mconcat $ [int 3, int 3, op "/"])
+          (evaluate' . mconcat $ [int 3, int 3, op "/", SVariable (Variable "!") SEmpty])
 
         assertEqual
           "Comparison True."
@@ -122,7 +142,7 @@ test1 =
                   & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 1])]
               )
           )
-          (evaluate' . mconcat $ [int 3, int 3, op "=="])
+          (evaluate' . mconcat $ [int 3, int 3, op "==", SVariable (Variable "!") SEmpty])
 
         assertEqual
           "Comparison False."
@@ -131,7 +151,7 @@ test1 =
                   & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 0])]
               )
           )
-          (evaluate' . mconcat $ [int 3, int 2, op "=="])
+          (evaluate' . mconcat $ [int 3, int 2, op "==", SVariable (Variable "!") SEmpty])
 
         assertEqual
           "Inequality True."
@@ -140,7 +160,7 @@ test1 =
                   & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 0])]
               )
           )
-          (evaluate' . mconcat $ [int 3, int 3, op "/="])
+          (evaluate' . mconcat $ [int 3, int 3, op "/=", SVariable (Variable "!") SEmpty])
 
         assertEqual
           "Inequality False."
@@ -149,7 +169,7 @@ test1 =
                   & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [int 1])]
               )
           )
-          (evaluate' . mconcat $ [int 3, int 2, op "/="])
+          (evaluate' . mconcat $ [int 3, int 2, op "/=", SVariable (Variable "!") SEmpty])
 
         assertEqual
           "Working error."
@@ -160,7 +180,7 @@ test1 =
           "Self evaluation"
           ( ok
               ( mempty @MachineMemory
-                  & stacks .~ M.fromList [(home, mempty & stack .~ S.fromList [varT "x"])]
+                  & spine .~ varT "x"
               )
           )
           (evaluate' . mconcat $ [varT "x"])
@@ -179,10 +199,8 @@ test1 =
           "Self evaluation 3"
           ( ok
               ( Memory
-                  { _spine = SEmpty
-                  , _stacks =
-                      M.fromList
-                        [(DLocation, Stack {_stack = S.fromList [SVariable (Variable "x") SEmpty]})]
+                  { _spine = SVariable (Variable "x") SEmpty
+                  , _stacks = mempty
                   , _binds = M.fromList [(Variable "y", SVariable (Variable "x") SEmpty)]
                   }
               )

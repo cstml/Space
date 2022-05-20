@@ -7,10 +7,10 @@
 [10];<y>;
 -- y := 10
   
-[@Ou[x]; x; <i> ; x; xx ; +; !; <x>; i ; !; <xx>;];<a>;
+[[x]@O; x; <i> ; x; xx ; +; !; <x>; i ; !; <xx>;];<a>;
 -- a := print x . i = x . x = xx + x . xx = i . evaluate z 
   
-[@Ou[x]];<b>;
+[[x]@O];<b>;
 -- b := print x
   
 [ [a;z];

@@ -65,6 +65,8 @@ common Dependencies
     , tasty-quickcheck
     , text
     , transformers
+    , freer-simple
+  
 
 common Language
   hs-source-dirs:   src
