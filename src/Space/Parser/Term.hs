@@ -62,7 +62,7 @@ pLocationArbitrary = lex_ $ do
   pure . Location $ a : b
 
 pEmptyTerm :: Parser Term
-pEmptyTerm = lex_ . P.try $ P.char '*' >> return SEmpty
+pEmptyTerm = lex_ . P.try $ P.char '{' >> P.char '}' >> return SEmpty
 
 -- | Empty Term Infering parser.
 --
@@ -83,7 +83,7 @@ pVar = fmap Variable . lex_ $ P.choice [atom, operation]
     xs <- P.many P.letterChar
     pure $ x : xs
 
-  operation = T.unpack <$> (P.choice . fmap (P.string . fromString) $ ["==", "/=", "+", "-", "/", "**", "!", "?"])
+  operation = T.unpack <$> (P.choice . fmap (P.string . fromString) $ ["==", "/=", "+", "-", "/", "*", "!", "?"])
 
 -- | Infer an empty term.
 pTermWithInfer :: Parser (Term -> Term) -> Parser Term
@@ -97,10 +97,7 @@ pTermWithInfer p = do
       , lex_ pSeparator >> v <$> pEOFInfer
       , v <$> pEmptyTermInfer
       , v <$> pEOFInfer
-      , do
-          space_ 
-          x <- pTerm
-          return $  x <> (v SEmpty)
+      , space_ >> pTerm >>= (\x -> return $ x <> v SEmpty)
       ]
 
 pVariable :: Parser (Term -> Term)
@@ -125,4 +122,7 @@ pPop :: Parser (Term -> Term)
 pPop = flip SPop <$> pLocation <*> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
 
 pSeparator :: Parser ()
-pSeparator = lex_ . void $ P.choice $ P.try <$> [P.char ';', P.char ' ']
+pSeparator = lex_ . void $ P.choice $ P.try <$> [P.char ';']
+
+pComposing :: Parser ()
+pComposing = lex_ . void $ P.choice $ P.try <$> [P.char '.']

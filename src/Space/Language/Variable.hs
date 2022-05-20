@@ -7,7 +7,8 @@ import GHC.Generics
 import Prettyprinter
 
 newtype Variable = Variable String
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic)
+  deriving anyclass (NFData)
 
 instance Pretty Variable where
   pretty (Variable s) = pretty s

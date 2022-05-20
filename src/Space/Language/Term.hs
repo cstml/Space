@@ -48,7 +48,7 @@ instance Pretty Term where
               _ -> brackets (pretty t) <++> pretty con
             _ -> case con of
               SEmpty -> pretty l <> brackets (pretty t)
-              _ -> pretty l <> brackets (pretty t)  <++> pretty con
+              _ -> pretty l <> brackets (pretty t) <++> pretty con
           SPop v l con -> case l of
             DLocation -> case con of
               SEmpty -> angles (pretty v)
@@ -61,9 +61,9 @@ instance Pretty Term where
               SEmpty -> angles (pretty v <> colon <> pretty ty)
               _ -> angles (pretty v <> colon <> pretty ty) <++> pretty con
             _ -> case con of
-              SEmpty -> pretty l <> angles (pretty v <> colon <> pretty ty) 
-              _ ->  pretty l <> angles (pretty v <> colon <> pretty ty) <++> pretty con
-          SEmpty -> pretty "*"
+              SEmpty -> pretty l <> angles (pretty v <> colon <> pretty ty)
+              _ -> pretty l <> angles (pretty v <> colon <> pretty ty) <++> pretty con
+          SEmpty -> pretty "{}"
 
 instance Semigroup Term where
   (<>) = \case

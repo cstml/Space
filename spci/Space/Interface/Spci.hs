@@ -1,11 +1,12 @@
 module Space.Interface.Spci where
 
-import System.IO
 import Control.Lens
+import Control.Monad.Trans.Reader
 import Prettyprinter
 import Space
 import Space.Aux.Evaluate
 import Space.Evaluator.Implementation.Pure
+import System.IO
 
 data SpaceiConfig = SpaceiConfig
   { _siWelcome :: String
@@ -42,6 +43,8 @@ spaceiStdConfig =
                 ]
     }
 
+type Interpreter a = Reader a
+
 replEval :: String -> MachineMemory -> (String, MachineMemory)
 replEval s mem =
   let pr = parseTerm s
@@ -72,7 +75,7 @@ readCommand = \case
 
 dispatch :: MachineMemory -> IO ()
 dispatch mem = do
-  putStr "γ> " >> hFlush stdout
+  putStr (spaceiStdConfig ^. siPrompt) >> hFlush stdout
   (comm, input) <- readCommand <$> getLine
   exeCommand comm mem input
 

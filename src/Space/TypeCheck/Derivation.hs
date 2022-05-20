@@ -10,8 +10,9 @@ import Space.Language
 
 -- | A typing context is a set of varaible and type pairings.
 newtype TContext = TContext {_tContext :: [(Term, SType)]}
-  deriving (Show, Eq, Generic, NFData)
+  deriving (Show, Eq, Generic)
   deriving newtype (Semigroup, Monoid)
+  deriving anyclass (NFData)
 
 makeLenses ''TContext
 
@@ -21,7 +22,8 @@ data TJudgement = TJudgement
   , _jTerm :: Term
   , _jType :: SType
   }
-  deriving (Show, Eq, Generic, NFData)
+  deriving (Show, Eq, Generic)
+  deriving anyclass (NFData)
 
 makeLenses ''TJudgement
 
@@ -41,7 +43,8 @@ data TSubstitution = TSubstitution
   { _sInitialType :: SType
   , _sTargetType :: SType
   }
-  deriving (Show, Eq, Ord, Generic, NFData)
+  deriving (Show, Eq, Ord, Generic)
+  deriving anyclass (NFData)
 
 makeLenses ''TSubstitution
 
@@ -66,10 +69,10 @@ pShow' d = unlines (reverse strs)
   showT = show . pretty
 
   showJ :: TJudgement -> String
-  showJ (TJudgement cx n t) = mconcat $ ["Γ ", "|- ", (show . pretty) n, " : ", showT t]
+  showJ (TJudgement cx n t) = mconcat ["Γ ", "|- ", (show . pretty) n, " : ", showT t]
 
   showL :: Int -> Int -> Int -> String
-  showL l m r = mconcat $ [replicate l ' ', replicate m '-', replicate r ' ']
+  showL l m r = mconcat [replicate l ' ', replicate m '-', replicate r ' ']
 
   showD :: TDerivation TJudgement -> (Int, Int, Int, [String])
   showD (DEmpty j) = (0, k, 0, [s, showL 0 k 0]) where s = showJ j; k = length s
