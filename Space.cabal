@@ -48,6 +48,7 @@ common Dependencies
     , base
     , containers
     , deepseq
+    , freer-simple
     , ghc-prim
     , hedgehog
     , lens
@@ -65,8 +66,6 @@ common Dependencies
     , tasty-quickcheck
     , text
     , transformers
-    , freer-simple
-  
 
 common Language
   hs-source-dirs:   src

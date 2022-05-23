@@ -10,7 +10,10 @@
 
 module Space.Evaluator.Machine where
 
+import Control.Exception
 import Control.Lens hiding (Empty, (:<), (<|))
+import Control.Monad.Freer
+import Control.Monad.Freer.TH
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Trans.Except
@@ -26,29 +29,27 @@ import Space.Evaluator.Memory
 import Space.Evaluator.Stack
 import Space.Language
 
+type MachineMemory = Memory Location Variable Term
+
 type MachineStack = Stack Term
 
-class
-  EvaluationMachine
-    (mac :: Type -> Type)
-    (mem :: Type)
-    (var :: Type)
-    (location :: Type)
-    (m2 :: Type -> Type)
-    | mac -> mem
-    , mac -> var
-    , mac -> location
-    , mac -> m2
-  where
-  getMemory :: mac mem
-  putMemory :: mem -> mac ()
-  updateMemory :: (mem -> mem) -> mac ()
-  putStack :: location -> MachineStack -> mac ()
-  pop1 :: location -> mac Term
-  pop1Bind :: var -> location -> mac Term
-  bind1 :: var -> Term -> mac ()
-  getBind :: var -> mac Term
-  push1 :: location -> Term -> mac ()
-  input :: IsString a => mac a
-  output :: Show a => a -> mac ()
-  run :: mem -> mac () -> m2 (Either MException (), mem)
+data EvalMachine (return :: Type) where
+  GetMemoryM :: EvalMachine MachineMemory
+  PutMemoryM :: MachineMemory -> EvalMachine ()
+  UpdateMemoryM :: (MachineMemory -> MachineMemory) -> EvalMachine ()
+  OutputM :: Show a => a -> EvalMachine ()
+  InputM :: IsString a => EvalMachine a
+  Pop1M :: Location -> EvalMachine Term
+  Push1M :: Location -> Term -> EvalMachine ()
+  Bind1M :: Variable -> Term -> EvalMachine ()
+  GetBindM :: Variable -> EvalMachine Term
+  PopGammaM :: EvalMachine Term
+  PushGammaM :: Term -> EvalMachine ()
+  ErrorM :: forall a. String -> EvalMachine a
+
+makeEffect ''EvalMachine
+
+data StateMachine (return :: Type) where
+  StepM :: Term -> StateMachine MachineMemory
+
+makeEffect ''StateMachine
