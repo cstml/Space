@@ -7,6 +7,8 @@ import Data.Bifunctor
 import Space.Language
 import Space.TypeCheck.Derivation
 import Space.TypeCheck.Properties
+import Control.Monad.Freer
+import Control.Monad.Freer.TH
 
 type VarStream = [String]
 
@@ -16,7 +18,24 @@ data TDerivationInfo = TDerivationInfo
   }
   deriving (Show, Eq)
 
+
+
+
+derive1 :: Term -> TDerivation Term
+derive1 term = case term of
+  SEmpty -> DEmpty term
+  SInteger i SEmpty -> DVar term
+  SInteger i cont   ->  DSeq term (DVar $ SInteger 1 SEmpty) (derive1 cont)
+  SVariable v cont -> DSeq term (DVar $ SVariable v SEmpty) (derive1 cont)
+  SChar c cont     -> DSeq term (DVar $ SChar c SEmpty) (derive1 cont)
+  SPush t l cont   -> DPush term (derive1 t) (derive1 cont)
+  SPop v l cont    -> DPop term (DVar $ SVariable v SEmpty) (derive1 cont) 
+
+
+
 makeLenses ''TDerivationInfo
+
+deriveTest = either (error.show) id . unDerive . derive
 
 derive :: Term -> DeriveM (TDerivation TJudgement)
 derive t = runReaderT (derive' t) initTDerivationInfo
@@ -37,7 +56,7 @@ derive t = runReaderT (derive' t) initTDerivationInfo
     contD <- local (const tdInfo) (derive' cont)
 
     -- Return the term.
-    pure $ DSeq judgement contD
+    pure $ DSeq judgement (DEmpty judgement) contD
 
   impliesConj term term1 cont constr = do
     -- split the stream and get a freshvariable from the right one
