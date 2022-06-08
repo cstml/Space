@@ -31,7 +31,7 @@ spaceiStdConfig =
                 , ""
                 , "Happy Hacking!"
                 ]
-    , _siPrompt = "γ> "
+    , _siPrompt = "> "
     , _siBye = "See you later!\n"
     , _siHelp =
         mconcat $

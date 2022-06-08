@@ -8,6 +8,7 @@ import Space.Language.Location
 import Space.Language.Term
 import Space.Language.Variable
 import Space.Parser.Token
+import Space.Parser.Util
 import Text.Megaparsec qualified as P
 import Text.Megaparsec.Char qualified as P
 import Text.Megaparsec.Char.Lexer qualified as P

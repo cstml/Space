@@ -10,8 +10,7 @@ import Text.Megaparsec
 import Text.Megaparsec qualified as P
 import Text.Megaparsec.Char qualified as P
 import Text.Megaparsec.Char.Lexer qualified as L
-
-type Parser = Parsec Void Text
+import Space.Parser.Util (Parser)
 
 space_ :: Parser ()
 space_ =

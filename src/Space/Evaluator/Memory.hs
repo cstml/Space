@@ -38,7 +38,7 @@ instance (Show l, Show b, Show t, Pretty l, Pretty b, Pretty t) => Pretty (Memor
   pretty mem =
     vsep
       [ vsep
-          [ pretty "γ: "
+          [ pretty "@γ: "
           , indent 4 $ pretty (mem ^. spine)
           ]
       , vsep
