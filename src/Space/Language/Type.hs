@@ -1,5 +1,6 @@
 module Space.Language.Type where
 
+import Data.Void
 import Aux.Unfoldable (Unfoldable (..))
 import Control.DeepSeq (NFData)
 import Data.Kind
@@ -18,6 +19,7 @@ import Space.Language.Location (Location)
 import Space.Language.Variable ()
 import Space.Language.Vector ()
 import Space.TypeCheck.Properties
+import Control.Lens
 
 newtype TVariableAtom = TVariableAtom String
   deriving stock (Eq, Show, Ord)
@@ -73,6 +75,17 @@ instance Reduce SType where
 
 infixl 7 ->:
 
+-- For usability sake this representation might make it easier to work with the
+-- unification.
+data Ty (a :: Type) where
+  NTVariable :: TVariableAtom -> Ty TVariableAtom
+  NTConstant :: TConstantAtom -> Ty TConstantAtom
+  NTLocation :: Location -> Ty a -> Ty a
+  NTArrow    :: Ty a -> Ty b -> Ty (a -> b)
+  NTSequence :: Ty a -> Ty b -> Ty (a,b)
+  NTEmpty    :: Ty Void 
+
+      
 -- | Utility Function for easy creation of arrows.
 (->:) :: SType -> SType -> SType
 (->:) x y = TArrow x y TEmpty

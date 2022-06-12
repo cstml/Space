@@ -1,14 +1,26 @@
+{-# LANGUAGE  FunctionalDependencies #-}
 module Space.TypeCheck.Derive where
 
+import Data.String
+import Aux.Unfoldable 
+import Data.Kind
+import GHC.Generics 
 import Control.Lens
-import Control.Monad.Reader
-import Control.Monad.Trans.Class
-import Data.Bifunctor
-import Space.Language
-import Space.TypeCheck.Derivation
-import Space.TypeCheck.Properties
 import Control.Monad.Freer
 import Control.Monad.Freer.TH
+import Control.Monad.Reader
+import Control.Monad.State
+import Control.Monad.Trans.Except
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Identity
+import Data.Bifunctor
+import Data.List
+import Prettyprinter (pretty)
+import Space.Language
+import Space.Parser
+import Space.TypeCheck.Derivation
+import Space.TypeCheck.Properties
+import Space.TypeCheck.Exception
 
 type VarStream = [String]
 
@@ -18,84 +30,155 @@ data TDerivationInfo = TDerivationInfo
   }
   deriving (Show, Eq)
 
-
-
-
-derive1 :: Term -> TDerivation Term
-derive1 term = case term of
-  SEmpty -> DEmpty term
-  SInteger i SEmpty -> DVar term
-  SInteger i cont   ->  DSeq term (DVar $ SInteger 1 SEmpty) (derive1 cont)
-  SVariable v cont -> DSeq term (DVar $ SVariable v SEmpty) (derive1 cont)
-  SChar c cont     -> DSeq term (DVar $ SChar c SEmpty) (derive1 cont)
-  SPush t l cont   -> DPush term (derive1 t) (derive1 cont)
-  SPop v l cont    -> DPop term (DVar $ SVariable v SEmpty) (derive1 cont) 
-
-
-
 makeLenses ''TDerivationInfo
 
-deriveTest = either (error.show) id . unDerive . derive
-
-derive :: Term -> DeriveM (TDerivation TJudgement)
-derive t = runReaderT (derive' t) initTDerivationInfo
+-- | Build the derivation using the terms
+derive1 :: Term -> TDerivation Term
+derive1 = f
  where
-  initTDerivationInfo = TDerivationInfo (show <$> [1 ..]) ['a' ..]
+  f :: Term -> TDerivation Term
+  f term = case term of
+    SEmpty -> DEmpty term
+    SInteger i SEmpty -> DVar term
+    SInteger i cont -> DSeq term (DVar $ SInteger i SEmpty) (derive1 cont)
+    SVariable v cont -> DSeq term (DVar $ SVariable v SEmpty) (derive1 cont)
+    SChar c cont -> DSeq term (DVar $ SChar c SEmpty) (derive1 cont)
+    SPush t l cont -> DPush term (derive1 t) (derive1 cont)
+    SPop v l cont -> DPop term (DVar $ SVariable v SEmpty) (derive1 cont)
 
-  err :: forall a m r. MonadFail m => String -> ReaderT a m r
-  err = lift . fail
+testDerive1 = pretty . fmap pretty . derive1 . parseTermTest
 
-  implies term cont = do
-    -- Get a new variable
-    (freshVar, tdInfo) <- asks getANewTVariable
+-- | Give types to trivial terms, give the most generic type to everything else.
+derive1t2 :: TDerivation Term -> TDerivation TJudgement
+derive1t2 = fst . flip runState stream . sequence . fmap f
+ where
+  f :: Term -> State [String] TJudgement
+  f x = case x of
+    SEmpty ->
+      let typ = TEmpty ->: TEmpty in pure $ TJudgement (TContext [(x, typ)]) x typ
+    SInteger _ SEmpty ->
+      let typ = TEmpty ->: TConstant TInt TEmpty in pure $ TJudgement (TContext [(x, typ)]) x typ
+    SChar _ SEmpty ->
+      let typ = TEmpty ->: TConstant TChar TEmpty in pure $ TJudgement (TContext [(x, typ)]) x typ
+    SVariable _ SEmpty -> do
+      typ <- getFreshT
+      pure $ TJudgement (TContext [(x, typ)]) x typ
+    _ -> do
+      typ <- getFreshT
+      pure $ TJudgement (TContext [(x, typ)]) x typ
 
-    -- Formulate a basic judgement,
-    let judgement = TJudgement (TContext []) term freshVar
+  -- Stream of fresh variables.
+  stream = [x : y : [] | y <- ['1' ..], x <- ['a' .. 'z']]
 
-    -- Continue recursively,
-    contD <- local (const tdInfo) (derive' cont)
+  -- Get a nice fresh type. 
+  getFreshT :: State [String] SType
+  getFreshT = do
+    freshV <- getFreshVar
+    pure $ TVariable (TVariableAtom freshV) TEmpty
+   where
+    getFreshVar :: State [String] String
+    getFreshVar = do
+      x' <- get
+      case x' of
+        (x : xs) -> do
+          put xs
+          return x
+        _ -> error "This should be an infinite stream - should not happen."
 
-    -- Return the term.
-    pure $ DSeq judgement (DEmpty judgement) contD
+-- | Utility functio to test 
+testDerive2 = pretty . fmap pretty . derive1t2 . derive1 . parseTermTest
+{-
+--type TContext = [(TVariableAtom, SType)]
 
-  impliesConj term term1 cont constr = do
-    -- split the stream and get a freshvariable from the right one
-    ((freshVar, lInfo), rInfo) <- asks (first getANewTVariable . splitStream)
+class GetFresh (m :: Type -> Type) (a :: Type) where
+  fresh :: m a 
 
-    -- calculate the derivation of the push term
-    pushD <- local (const lInfo) (derive' term1)
+class HasContext (m :: Type -> Type) (a :: Type) (b :: Type)  | m a -> b where
+  whats :: a -> m (Maybe b)
+  add   :: a -> m ()
 
-    -- calculate the derivation of the following term
-    contD <- local (const rInfo) (derive' cont)
+class CanFail (m :: Type -> Type) (e :: Type) where
+   fail :: e -> m a
 
-    -- formulate the judgement
-    let judgement = TJudgement mempty term freshVar
+infer :: ( Monad m
+         , GetFresh m TVariableAtom
+         , HasContext m Term SType
+         , CanFail m TCError
+         )
+         => Term -> m SType
+infer = f
+  where
+    f = \case
+      SVariable v cont -> do
+        let termStep = SVariable v SEmpty
+        ct <- whats termStep
+        case ct of
+          Nothing -> do
+            ft <- fresh 
+            add (termStep,ft)
+            (ft <£>) <$> (infer cont)
+          Just t -> (t <£>) <$> (infer cont)
+          
+{-
+SInteger _ cont -> TConstant TInt  <$> infer cont 
+      SChar _ cont  -> TConstant TChar <$> infer cont 
+      SPush t l cont -> TLocation l <$> infer t <*> infer cont
+    --  SPop Variable Location Term
+    --  SPopT Variable Location SType Term
+    --  SEmpty
+-}
+(<£>) :: ( Monad m
+         , GetFresh m TVariableAtom
+         , HasContext m Term SType
+         , CanFail m TCError
+         )
+         => SType ->  SType -> m SType
+(<£>) = undefined 
+{-
+    TEmpty -> y
+    TVariable a c -> TVariable a $ c <> y
+    TConstant a c -> TConstant a $ c <> y
+    TLocation l t c -> TLocation l t $ c <> y
+    TMany n t c -> TMany n t $ c <> y
+    TArrow a b c -> TArrow a b $ c <> y
+-}
+{-
+newtype Consume a = Consume { unConsume :: Except TCError a }
+  deriving stock (Eq, Ord, Show)
+  deriving newtype (Monad, Functor, Applicative)
 
-    -- return the derivation
-    pure $ constr judgement pushD contD
+data Union a = Union
+  { subs :: Substitution a
+  , remainingLeft :: SType
+  , remainingRight :: SType
+  }
 
-  derive' :: Term -> ReaderT TDerivationInfo DeriveM (TDerivation TJudgement)
-  derive' term = case term of
-    SInteger i cont -> implies term cont
-    SChar i cont -> implies term cont
-    SVariable v cont -> implies term cont
-    SPush pushT loc cont -> impliesConj term pushT cont DPush
-    SPop var loc cont -> impliesConj term (SVariable var SEmpty) cont DPop
-    SPopT var loc ty cont -> impliesConj term (SVariable var SEmpty) cont DPop
-    SEmpty -> pure . DEmpty $ TJudgement mempty SEmpty TEmpty
+class Consumable (a :: Type) where 
+  (<£>) :: a -> a -> Consume [Union a]
 
--- | There are some types which are trivial to infer, like SInteger and SChar.
-infer1Trivial :: TJudgement -> [TSubstitution]
-infer1Trivial x = undefined
+class FirstElement (a :: Type) where
+  gFirst :: a -> a 
 
-getANewTVariable :: TDerivationInfo -> (SType, TDerivationInfo)
-getANewTVariable info =
-  ( flip TVariable TEmpty . TVariableAtom $ (head (info ^. alphaVarStream) : head (info ^. numVarStream))
-  , info & numVarStream %~ tail
-  )
+instance Consumable SType where
+  term1 <£> term2 =
+    case gFirst term1 of
+          TEmpty -> undefined
+          TVariable a c -> undefined
+          TConstant a c -> undefined
+          TLocation l t c -> undefined
+          TArrow a b c -> undefined
 
-splitStream :: TDerivationInfo -> (TDerivationInfo, TDerivationInfo)
-splitStream info =
-  ( info & alphaVarStream %~ tail
-  , info & alphaVarStream %~ tail . tail
-  )
+{-
+    case unfold term1 of 
+     t1:t1s ->
+       case t1 of
+         TVariable _ _ ->
+           case unfold term2 of
+             t2:t2s -> ((Substitution t1 t2) :) <$> (mconcat t1s <£> mconcat t2s)
+             _ -> pure [Substitution t1 TEmpty]
+         _ -> case unfold term2 of
+           t2:t2s ->  Consume $ throwE TCError
+-}           
+-}
+
+-}

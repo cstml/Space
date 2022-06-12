@@ -77,6 +77,13 @@ special function, namely `scoop` with the operator `!`. Upon evaluating `!` the
 @_: 8
 ```
 
+## Type syntax 
+  - Ch           <-> Char
+  - {}           <-> Void 
+  - Z            <-> Integer
+  - [{Z} -> {Z}] <-> Integer -> Integer 
+  - [{}  -> {Z}] <-> Void    -> Integer
+
 
 ## Example files 
 
@@ -88,7 +95,7 @@ To see some examples, have a look
 
 - [ ] a step debugger that steps through the the term as it executes.
 
-- [x] make a program that actually does something.
+- [x] make a program that actually does something - check examples.
 
 ## Term equivalence
 

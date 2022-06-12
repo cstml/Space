@@ -6,11 +6,11 @@ import Control.Monad
 import Data.String
 import Data.Text
 import Data.Void
+import Space.Parser.Util (Parser)
 import Text.Megaparsec
 import Text.Megaparsec qualified as P
 import Text.Megaparsec.Char qualified as P
 import Text.Megaparsec.Char.Lexer qualified as L
-import Space.Parser.Util (Parser)
 
 space_ :: Parser ()
 space_ =
