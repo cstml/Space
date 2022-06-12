@@ -21,6 +21,10 @@ instance Monad ReduceM where
 instance MonadFail ReduceM where
   fail = ReduceM . Left . TCErrorString
 
+newtype DeriveM a = DeriveM {unDerive :: Either TCError a}
+  deriving (Show, Eq)
+  deriving (Functor, Applicative, Monad, MonadFail) via ReduceM
+
 class Reduce t where
   reduce1 :: t -> ReduceM t
 

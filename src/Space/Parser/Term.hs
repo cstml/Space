@@ -8,6 +8,7 @@ import Space.Language.Location
 import Space.Language.Term
 import Space.Language.Variable
 import Space.Parser.Token
+import Space.Parser.Util
 import Text.Megaparsec qualified as P
 import Text.Megaparsec.Char qualified as P
 import Text.Megaparsec.Char.Lexer qualified as P
@@ -62,7 +63,7 @@ pLocationArbitrary = lex_ $ do
   pure . Location $ a : b
 
 pEmptyTerm :: Parser Term
-pEmptyTerm = lex_ . P.try $ P.char '*' >> return SEmpty
+pEmptyTerm = lex_ . P.try $ P.char '{' >> P.char '}' >> return SEmpty
 
 -- | Empty Term Infering parser.
 --
@@ -83,7 +84,7 @@ pVar = fmap Variable . lex_ $ P.choice [atom, operation]
     xs <- P.many P.letterChar
     pure $ x : xs
 
-  operation = T.unpack <$> (P.choice . fmap (P.string . fromString) $ ["==", "/=", "+", "-", "/", "*"])
+  operation = T.unpack <$> (P.choice . fmap (P.string . fromString) $ ["==", "/=", "+", "-", "/", "*", "!", "?"])
 
 -- | Infer an empty term.
 pTermWithInfer :: Parser (Term -> Term) -> Parser Term
@@ -97,6 +98,7 @@ pTermWithInfer p = do
       , lex_ pSeparator >> v <$> pEOFInfer
       , v <$> pEmptyTermInfer
       , v <$> pEOFInfer
+      , space_ >> pTerm >>= (\x -> return $ x <> v SEmpty)
       ]
 
 pVariable :: Parser (Term -> Term)
@@ -112,13 +114,16 @@ pPushDef :: Parser (Term -> Term)
 pPushDef = (`SPush` DLocation) <$> P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
 
 pPush :: Parser (Term -> Term)
-pPush = flip SPush <$> pLocation <*> P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm
+pPush = SPush <$> P.between (lex_ $ P.char '[') (lex_ $ P.char ']') pTerm <*> pLocation
 
 pPopDef :: Parser (Term -> Term)
 pPopDef = flip SPop DLocation <$> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
 
 pPop :: Parser (Term -> Term)
-pPop = flip SPop <$> pLocation <*> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar
+pPop = SPop <$> P.between (lex_ $ P.char '<') (lex_ $ P.char '>') pVar <*> pLocation
 
 pSeparator :: Parser ()
-pSeparator = lex_ . void $ P.choice $ P.try <$> [P.char ';', P.char ' ']
+pSeparator = lex_ . void $ P.choice $ P.try <$> [P.char ';']
+
+pComposing :: Parser ()
+pComposing = lex_ . void $ P.choice $ P.try <$> [P.char '.']

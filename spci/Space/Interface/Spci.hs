@@ -1,10 +1,12 @@
 module Space.Interface.Spci where
 
 import Control.Lens
+import Control.Monad.Trans.Reader
 import Prettyprinter
 import Space
 import Space.Aux.Evaluate
 import Space.Evaluator.Implementation.Pure
+import System.IO
 
 data SpaceiConfig = SpaceiConfig
   { _siWelcome :: String
@@ -29,7 +31,7 @@ spaceiStdConfig =
                 , ""
                 , "Happy Hacking!"
                 ]
-    , _siPrompt = "γ> "
+    , _siPrompt = "> "
     , _siBye = "See you later!\n"
     , _siHelp =
         mconcat $
@@ -40,6 +42,8 @@ spaceiStdConfig =
                 , ":r to reset machine memory."
                 ]
     }
+
+type Interpreter a = Reader a
 
 replEval :: String -> MachineMemory -> (String, MachineMemory)
 replEval s mem =
@@ -71,6 +75,7 @@ readCommand = \case
 
 dispatch :: MachineMemory -> IO ()
 dispatch mem = do
+  putStr (spaceiStdConfig ^. siPrompt) >> hFlush stdout
   (comm, input) <- readCommand <$> getLine
   exeCommand comm mem input
 

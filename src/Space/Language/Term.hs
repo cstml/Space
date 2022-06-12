@@ -63,7 +63,7 @@ instance Pretty Term where
             _ -> case con of
               SEmpty -> angles (pretty v <> colon <> pretty ty) <> pretty l
               _ -> angles (pretty v <> colon <> pretty ty) <> pretty l <++> pretty con
-          SEmpty -> pretty "*"
+          SEmpty -> pretty "{}"
 
 instance Semigroup Term where
   (<>) = \case

@@ -1,7 +1,7 @@
-@In<y>;  -- read y
+<y>@I;  -- read y
 y;       -- evaluate it
-@In<y>;  -- read y
+<y>@I;  -- read y
 y;       -- evaluate
 ==;      -- compare
 <x>;     -- bind the result
-@Ou[x];  -- push to output
+[x]@O;  -- push to output

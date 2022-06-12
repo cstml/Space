@@ -38,15 +38,15 @@ instance (Show l, Show b, Show t, Pretty l, Pretty b, Pretty t) => Pretty (Memor
   pretty mem =
     vsep
       [ vsep
-          [ pretty "Spine:"
+          [ pretty "@γ: "
           , indent 4 $ pretty (mem ^. spine)
           ]
       , vsep
-          [ pretty "Stacks:"
+          [ pretty "@_:"
           , indent 4 (pretty (mem ^. stacks))
           ]
       , vsep
-          [ pretty "Binds:"
+          [ pretty "<_>:"
           , indent 4 (pretty (mem ^. binds))
           ]
       , emptyDoc

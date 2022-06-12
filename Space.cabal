@@ -1,8 +1,7 @@
 cabal-version:      3.4
 name:               spc
-version:            0.1.0.0
-synopsis:
-  A declarative, statically typed, stack based programing language.
+version:            0.2.0.0
+synopsis:           A stack based programing language.
 
 -- description:
 
@@ -49,6 +48,7 @@ common Dependencies
     , base
     , containers
     , deepseq
+    , freer-simple
     , ghc-prim
     , hedgehog
     , lens
@@ -84,6 +84,7 @@ common Language
     Space.Language
     Space.Language.Empty
     Space.Language.Location
+    Space.Language.Syntax
     Space.Language.Term
     Space.Language.Type
     Space.Language.Variable
@@ -92,8 +93,10 @@ common Language
     Space.Parser.Term
     Space.Parser.Token
     Space.TypeCheck.Derivation
+    Space.TypeCheck.Derive
     Space.TypeCheck.Exception
     Space.TypeCheck.Properties
+    Space.TypeCheck.TCTerm
 
   other-extensions: OverloadedStrings
 
@@ -103,6 +106,7 @@ common Test
     Test.Space.Evaluator.Machine
     Test.Space.Language
     Test.Space.Parser
+    Test.Space.TypeChecker.Derive
 
 library
   import:          Extensions
