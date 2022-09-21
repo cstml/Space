@@ -8,22 +8,52 @@ the FMC, FMCt, and Forth.
 
 - [Space](#space)
     - [Running the language](#running-the-language)
+    - [Building the project](#building-the-project)
+        - [Using nix](#using-nix)
+        - [Using cabal](#using-cabal)
+        - [Using stack](#using-stack)
+    - [Language tutorial](#language-tutorial)
+    - [Type syntax](#type-syntax)
     - [Example files](#example-files)
     - [Potential Ideas](#potential-ideas)
+    - [Term equivalence](#term-equivalence)
 
 <!-- markdown-toc end -->
 
 ## Running the language
-- you can play in the spci interpreter or run files
+
+You can play in the `spci` interpreter or run files with the `spc` interpreter.
+
+## Building the project 
+
+There are many ways of building the project.
+
+### Using nix 
+
+1. Run `nix build` inside the repository
+
+2. Run `./result/bin/spc` for the interpreter or `rlwrap ./result/bin/spci` for
+   the interactive interpreter. Note that I recommend you use `rlwrap` to get
+   the nice line wrpapping.
+
+### Using cabal
+
+1. Run `cabal run spc` for the interpreter or `rlwrap cabal run spci` for the
+   interactive interpreter.
+   
+### Using stack
+
+1. Run `stack run spc` or `rlwrap stack run spci`
 
 ## Language tutorial
 
 Let's imagine we have an infinity of stacks, each having a name. From this
 infinity of stacks - to make things easier we choose two. One stack, our main
 one, is called `@γ`, and another is called `@_` (or the Default location).
-Observe that we know they are location due to their name starting with an
-`@`. If we wanted to use the stack at location `foo` we would simply refer to
-stack `@foo`. Now, let's imagine we have a machine that moves terms in this
+Observe that we know they are location due to their name starting with an `@`.
+
+If we wanted to use the stack at location `foo` we would simply refer to stack
+`@foo`. Now, let's imagine we have a machine that moves terms in this
 `Space`. Say we wanted to put the number `3` onto the main stack, the way to do
 so is simply to give the term 3 to our `Space` machine and it will put it on the
 stack. This is done simply by evaluating the number 3 like so:
@@ -87,7 +117,7 @@ special function, namely `scoop` with the operator `!`. Upon evaluating `!` the
 
 ## Example files 
 
-To see some examples, have a look 
+To see some examples, have a look at the test files.
 
 ## Potential Ideas
 
