@@ -17,6 +17,7 @@
         additionalPckgs = with pkgs; [ nixfmt rlwrap ];
 
         additionalHaskellPckgs = with pkgs.haskellPackages; [
+          stack
           structured-haskell-mode
           stylish-haskell
           apply-refact

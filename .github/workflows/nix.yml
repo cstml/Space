@@ -1,11 +1,9 @@
-name: CI
+name: Nix CI
 
-# Controls when the workflow will run
 on:
   push:
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build-all:
     runs-on: ubuntu-latest
