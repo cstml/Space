@@ -9,10 +9,10 @@ test =
   testGroup
     "Derivation Tests."
     [ testCase "REFL" $ 1 @=? 1
-    , testCase "Simple Derivation" $
-        unDerive (derive SEmpty)
+    {-, testCase "Simple Derivation" $
+        unDerive (derive1 SEmpty)
           @?= Right (DEmpty (TJudgement {_jContext = TContext {_tContext = []}, _jTerm = SEmpty, _jType = TEmpty}))
-          {-, testCase "Trivial term type infer." $
+          , testCase "Trivial term type infer." $
               unDerive (derive $ SInteger 1 $ SInteger 2 $ SInteger 3 SEmpty)
                 @?= let commonContext =
                           [

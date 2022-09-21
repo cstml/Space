@@ -1,5 +1,5 @@
 {
-  description = "FMCt Programming Language";
+  description = "Space Compiler and Evaluator";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
@@ -11,7 +11,7 @@
 
         pkgs = import nixpkgs {
           inherit system overlays;
-          config.allowBroken = true;
+          #          config.allowBroken = true;
         };
 
         additionalPckgs = with pkgs; [ nixfmt rlwrap ];
@@ -19,7 +19,6 @@
         additionalHaskellPckgs = with pkgs.haskellPackages; [
           structured-haskell-mode
           stylish-haskell
-
           apply-refact
           cabal-fmt
           cabal-install
@@ -29,7 +28,6 @@
           hlint
           zlib
           haskell-language-server
-
           doctest
         ];
 
@@ -44,6 +42,7 @@
               (additionalHaskellPckgs ++ additionalPckgs);
           };
       in {
+
         # Used by `nix build` & `nix run` (prod exe)
         defaultPackage = project false;
 

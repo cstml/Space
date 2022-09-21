@@ -1,9 +1,8 @@
 cabal-version:      3.4
 name:               spc
 version:            0.2.0.0
-synopsis:           A stack based programing language.
-
--- description:
+synopsis:           A multi stack based programing language.
+description:        A programming language inspired by the FMC paper and Forth.
 
 -- A URL where users can report bugs.
 -- bug-reports:
@@ -76,6 +75,7 @@ common Language
     Space.Aux.Show
     Space.Evaluator
     Space.Evaluator.Exception
+    Space.Evaluator.Implementation
     Space.Evaluator.Implementation.IO
     Space.Evaluator.Implementation.Pure
     Space.Evaluator.Machine
@@ -92,6 +92,8 @@ common Language
     Space.Parser
     Space.Parser.Term
     Space.Parser.Token
+    Space.Parser.Util
+    Space.TypeCheck
     Space.TypeCheck.Derivation
     Space.TypeCheck.Derive
     Space.TypeCheck.Exception
@@ -151,6 +153,7 @@ library
 --  ghc-options:    -threaded -rtsopts
 
 common Spci
+  import:         Language 
   hs-source-dirs: spci
   other-modules:  Space.Interface.Spci
 
@@ -176,6 +179,7 @@ executable spc
   other-modules: Space.Interpreter
 
 test-suite tests
+  import:        Language
   import:        Spci
   import:        Extensions
   import:        Language
