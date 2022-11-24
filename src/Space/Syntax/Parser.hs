@@ -3,7 +3,10 @@
 module Space.Syntax.Parser where
 
 import qualified Text.Parsec.Token as T
+
 import Space.Syntax.Types
+import Space.Syntax.Context
+
 import Text.Parsec.Language
 import Data.Functor
 import Text.Parsec 
@@ -11,16 +14,42 @@ import Text.Parsec.Char
 
 type Parser = Parsec String () 
 
+parseExpressions :: String -> Either ParseError [Expression]
+parseExpressions = runParser pExpressions () "stdInput" 
 
-parse :: String -> Either ParseError Term
-parse str = runParser pTerm () "stdInput" str 
+pExpression :: Parser Expression
+pExpression = choice [ TypeExp <$> pTypeBinding
+                     , TermExp <$> pTerm
+                     ]
+
+pExpressions :: Parser [Expression]
+pExpressions = many (whiteSpace >> pExpression)
+
+parseTerm :: String -> Either ParseError Term
+parseTerm = runParser pTerm () "stdInput" 
+
+pTypeBinding :: Parser (Variable, TermType)
+pTypeBinding = do
+  whiteSpace >>  reserved "type" >>  whiteSpace
+  v <- pVar
+  whiteSpace >> char ':' >> whiteSpace
+  t <- pType <* whiteSpace
+  return (v,t)
 
 pTerm :: Parser Term
-pTerm = chainr1 (choice $ lexeme <$> [ pClosure, pVariable, pBind ]) (pure (<>))  
+pTerm = do 
+  whiteSpace
+  chainr1 (choice $ lexeme <$> [ pClosure, pVariable, pBind , pPush]) (pure (<>))  
+
+pPush :: Parser Term 
+pPush = do 
+  t <- brackets pTerm 
+  l <- pLocation
+  pure $ Push l t NoOp
 
 pBind :: Parser Term
 pBind = do
-  v <- angles pAtom
+  v <- angles pVar
   l <- pLocation
   pure $ Bind l v NoOp
 
@@ -28,27 +57,25 @@ pClosure :: Parser Term
 pClosure = Closure <$> braces pTerm <*> pure NoOp
 
 pVariable :: Parser Term
-pVariable = Variable <$> pAtom <*> pure NoOp
+pVariable = Variable <$> pVar <*> pure NoOp
 
-pAtom :: Parser Variable
-pAtom = MkVariable <$> identifier
+pVar :: Parser Variable
+pVar = MkVariable <$> identifier
+
+pAtom :: Parser Atom
+pAtom = MkAtom <$> identifier
 
 pNoOp :: Parser Term
 pNoOp = whiteSpace $> NoOp
 
--- pSpace :: Parser ()
--- pSpace = space space1 (skipLineComment   "--") (skipBlockCommentNested   "{-"  "-}")
-
--- _lex :: Parser a -> Parser a
--- _lex = lexeme pSpace 
-
 pLocation :: Parser Location
-pLocation = 
-  char '@'
-  *>  (char '_' $> Spine )
-  <|> (char 'i' $> Input )
-  <|> (char 'o' $> Output)
-  <|> (char '^' $> Return)
+pLocation = do 
+  symbol "@"
+  choice [ symbol "_" $> Spine 
+         , symbol "i" $> Input 
+         , symbol "o" $> Output
+         , symbol "^" $> Return
+         ]
 
 spaceDef :: LanguageDef st
 spaceDef = emptyDef
@@ -57,18 +84,42 @@ spaceDef = emptyDef
   , T.commentLine = "--"
   , T.nestedComments = True
   , T.caseSensitive = False
-  , T.identStart = alphaNum
+  , T.identStart = alphaNum <|> oneOf "-+*%/"
   , T.identLetter = alphaNum <|> oneOf "_'"
   , T.opStart = T.opLetter spaceDef
   , T.opLetter = oneOf "@_"
+  , T.reservedNames = ["type"]
   }
 
 -- | A lexer for Space.
 sL :: T.TokenParser st
 sL = T.makeTokenParser spaceDef
 
-whiteSpace = T.whiteSpace sL
 lexeme = T.lexeme sL
 angles = T.angles sL
 identifier = T.identifier sL
 braces = T.braces sL
+brackets = T.brackets sL
+parens = T.parens sL
+symbol = T.symbol sL
+whiteSpace = T.whiteSpace sL
+reserved = T.reserved sL
+
+pType :: Parser TermType
+pType = choice
+  [ pArrow
+  , TypeVar <$> pAtom
+  , pTVector
+  ]
+
+pTVector :: Parser TermType
+pTVector = do
+  v <- TypeVector <$> braces (pType `sepBy` char ',')
+  l <- pLocation
+  pure $ TypeLocation l v 
+
+pArrow :: Parser TermType
+pArrow = do 
+  types <- parens (pType `sepBy` (whiteSpace >> string "->" <* whiteSpace))
+  pure $ foldr1 (:->:) types
+  

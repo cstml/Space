@@ -1,0 +1,82 @@
+cabal-version:      3.4
+name:               space-lang
+version:            0.1.0.0
+author:             Vlad Posmangiu Luchian
+maintainer:         cstmlcodes@gmail.com
+extra-source-files: CHANGELOG.md
+
+common space-common
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-uni-patterns -Wno-unused-do-bind
+    -Wno-partial-type-signatures -Wmissing-export-lists
+    -Wincomplete-record-updates -Wmissing-deriving-strategies
+    -Wno-name-shadowing -Wunused-foralls
+    -Wno-unticked-promoted-constructors -fprint-explicit-foralls
+    -fprint-explicit-kinds
+
+  --      -Werror
+  build-depends:
+    , base          ^>=4.15.1.0
+    , containers    ^>=0.6.6
+    , freer-simple  ^>=1.2.1.2
+    , lens          ^>=5.2
+    , parsec        ^>=3.1.15.1
+    , prettyprinter ^>=1.7.1 
+    , mtl
+    , transformers
+  
+  default-extensions:
+    DataKinds
+    DerivingStrategies
+    FlexibleContexts
+    GADTs
+    GeneralizedNewtypeDeriving
+    LambdaCase
+    OverloadedStrings
+    RankNTypes
+    ScopedTypeVariables
+    TemplateHaskell
+    TypeApplications
+    TypeOperators
+    NumericUnderscores
+
+executable space-lang
+  import:           space-common
+  main-is:          Main.hs
+  build-depends:    space-lang
+  hs-source-dirs:   app
+  default-language: Haskell2010
+
+executable spci
+  import:           space-common
+  main-is:          spci.hs
+  build-depends:    space-lang
+  hs-source-dirs:   spci
+  default-language: Haskell2010
+  
+library
+  import:          space-common
+  hs-source-dirs:  src
+  exposed-modules:
+    Space.Evaluator
+    Space.Parser
+    Space.Syntax.Parser
+    Space.Syntax.Types
+    Space.Syntax.Context
+    Space.TypeChecking.Derivation
+    Space.TypeChecking.Derive
+    Space.Syntax
+    
+test-suite test
+  import:          space-common
+  type:            exitcode-stdio-1.0
+  main-is:         Test.hs
+  hs-source-dirs:  test
+  build-depends:   space-lang
+  exposed-modules: Space.Test.Parser
+  other-modules:
+    Examples.ExampleTerms
+    Space.Test.Parser
+  build-depends:
+    , tasty
+    , tasty-hunit
