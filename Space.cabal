@@ -1,0 +1,71 @@
+cabal-version:      2.4
+name:               Space
+version:            0.1.0.0
+author:             Vlad P. Luchian
+maintainer:         cstmlcodes@gmail.com
+extra-source-files: CHANGELOG.md
+
+common space-common
+    ghc-options:
+      -Wall
+      -Wcompat
+      -Wincomplete-uni-patterns
+      -Wno-unused-do-bind
+      -Wno-partial-type-signatures
+      -Wmissing-export-lists
+--      -Werror
+      -Wincomplete-record-updates
+      -Wmissing-deriving-strategies
+      -Wno-name-shadowing
+      -Wunused-foralls
+      -Wno-unticked-promoted-constructors
+      -fprint-explicit-foralls
+      -fprint-explicit-kinds
+      
+    build-depends:    
+      , base ^>=4.15.1.0
+      , freer-simple
+      , containers
+      , lens
+      , parsec
+
+    default-extensions: 
+      DataKinds
+      DerivingStrategies
+      FlexibleContexts
+      GADTs
+      GeneralizedNewtypeDeriving
+      LambdaCase
+      OverloadedStrings
+      RankNTypes
+      ScopedTypeVariables
+      TemplateHaskell
+      TypeApplications
+      TypeOperators
+                    
+executable Space
+    import:           space-common
+    main-is:          Main.hs
+    build-depends:    space-eval
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+library 
+    import:          space-common
+    hs-source-dirs:  src
+    exposed-modules:
+      Space.Evaluator
+      Space.Syntax.Parser
+      Space.Syntax.Types
+        
+test-suite test
+  import:        space-common
+  type:          exitcode-stdio-1.0
+  main-is:       Test.hs
+  hs-source-dirs: test
+  build-depends:    space-eval
+  exposed-modules:
+     Space.Test.Parser
+  build-depends:
+    , tasty
+    , tasty-hunit
