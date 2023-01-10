@@ -17,11 +17,14 @@ common space-common
   --      -Werror
   build-depends:
     , base          ^>=4.15.1.0
-    , containers
-    , freer-simple
-    , lens
-    , parsec
-
+    , containers    ^>=0.6.6
+    , freer-simple  ^>=1.2.1.2
+    , lens          ^>=5.2
+    , parsec        ^>=3.1.15.1
+    , prettyprinter ^>=1.7.1 
+    , mtl
+    , transformers
+  
   default-extensions:
     DataKinds
     DerivingStrategies
@@ -35,6 +38,7 @@ common space-common
     TemplateHaskell
     TypeApplications
     TypeOperators
+    NumericUnderscores
 
 executable space-lang
   import:           space-common
@@ -43,14 +47,26 @@ executable space-lang
   hs-source-dirs:   app
   default-language: Haskell2010
 
+executable spci
+  import:           space-common
+  main-is:          spci.hs
+  build-depends:    space-lang
+  hs-source-dirs:   spci
+  default-language: Haskell2010
+  
 library
   import:          space-common
   hs-source-dirs:  src
   exposed-modules:
     Space.Evaluator
+    Space.Parser
     Space.Syntax.Parser
     Space.Syntax.Types
-
+    Space.Syntax.Context
+    Space.TypeChecking.Derivation
+    Space.TypeChecking.Derive
+    Space.Syntax
+    
 test-suite test
   import:          space-common
   type:            exitcode-stdio-1.0
@@ -58,6 +74,9 @@ test-suite test
   hs-source-dirs:  test
   build-depends:   space-lang
   exposed-modules: Space.Test.Parser
+  other-modules:
+    Examples.ExampleTerms
+    Space.Test.Parser
   build-depends:
     , tasty
     , tasty-hunit
