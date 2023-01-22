@@ -15,4 +15,4 @@ x
 
 type y : ({Int}@_ -> {Int,Int}@_)
 
-y 
+<y>@_
