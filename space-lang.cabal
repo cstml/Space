@@ -40,10 +40,11 @@ common space-common
     TypeOperators
     NumericUnderscores
 
-executable space-lang
+executable spc
   import:           space-common
   main-is:          Main.hs
-  build-depends:    space-lang
+  build-depends:    , space-lang
+                    , optparse-applicative
   hs-source-dirs:   app
   default-language: Haskell2010
 
@@ -59,10 +60,9 @@ library
   hs-source-dirs:  src
   exposed-modules:
     Space.Evaluator
-    Space.Parser
     Space.Syntax.Parser
     Space.Syntax.Types
-    Space.Syntax.Context
+    Space.TypeChecking.Context
     Space.TypeChecking.Derivation
     Space.TypeChecking.Derive
     Space.Syntax

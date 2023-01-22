@@ -5,28 +5,42 @@ module Space.Syntax.Parser where
 import qualified Text.Parsec.Token as T
 
 import Space.Syntax.Types
-import Space.Syntax.Context
+import Space.TypeChecking.Context
 
 import Text.Parsec.Language
 import Data.Functor
-import Text.Parsec 
-import Text.Parsec.Char 
+import Text.Parsec
+import Data.Bifunctor
 
-type Parser = Parsec String () 
+type Parser = Parsec String ()
 
-parseExpressions :: String -> Either ParseError [Expression]
-parseExpressions = runParser pExpressions () "stdInput" 
+parseDefinitions :: String -> Either ParseError (Term,Context)
+parseDefinitions = runParser pDefinitions () "stdInput"
+
+pDefinitions :: Parser (Term,Context)
+pDefinitions =   go <$> pExpressions
+  where
+    go :: [Expression] ->(Term,Context)
+    go [] = (mempty, mempty)
+    go (x:xs) = case x of
+      TermExp term -> first (term <>) (go xs)
+      TypeExp typ -> second (Context [typ] [] <>) (go xs)
+
+pExpressions :: Parser [Expression]
+pExpressions = many (whiteSpace >> pExpression)
 
 pExpression :: Parser Expression
 pExpression = choice [ TypeExp <$> pTypeBinding
                      , TermExp <$> pTerm
                      ]
 
-pExpressions :: Parser [Expression]
-pExpressions = many (whiteSpace >> pExpression)
+pTypeDef :: Parser Context
+pTypeDef = do
+  b <- pTypeBinding
+  pure $ Context [b] []
 
 parseTerm :: String -> Either ParseError Term
-parseTerm = runParser pTerm () "stdInput" 
+parseTerm = runParser pTerm () "stdInput"
 
 pTypeBinding :: Parser (Variable, TermType)
 pTypeBinding = do
@@ -37,13 +51,13 @@ pTypeBinding = do
   return (v,t)
 
 pTerm :: Parser Term
-pTerm = do 
+pTerm = do
   whiteSpace
-  chainr1 (choice $ lexeme <$> [ pClosure, pVariable, pBind , pPush]) (pure (<>))  
+  chainr1 (choice $ lexeme <$> [ pClosure, pVariable, pBind , pPush]) (pure (<>))
 
-pPush :: Parser Term 
-pPush = do 
-  t <- brackets pTerm 
+pPush :: Parser Term
+pPush = do
+  t <- brackets pTerm
   l <- pLocation
   pure $ Push l t NoOp
 
@@ -69,10 +83,10 @@ pNoOp :: Parser Term
 pNoOp = whiteSpace $> NoOp
 
 pLocation :: Parser Location
-pLocation = do 
+pLocation = do
   symbol "@"
-  choice [ symbol "_" $> Spine 
-         , symbol "i" $> Input 
+  choice [ symbol "_" $> Spine
+         , symbol "i" $> Input
          , symbol "o" $> Output
          , symbol "^" $> Return
          ]
@@ -116,10 +130,10 @@ pTVector :: Parser TermType
 pTVector = do
   v <- TypeVector <$> braces (pType `sepBy` char ',')
   l <- pLocation
-  pure $ TypeLocation l v 
+  pure $ TypeLocation l v
 
 pArrow :: Parser TermType
-pArrow = do 
+pArrow = do
   types <- parens (pType `sepBy` (whiteSpace >> string "->" <* whiteSpace))
   pure $ foldr1 (:->:) types
-  
+
